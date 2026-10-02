@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { StaffUser } from '../types';
 import { MapPin, KeyRound, Building2 } from 'lucide-react';
 import { formatDistance } from '../utils/geo';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface HeaderProps {
   staffList: StaffUser[];
@@ -54,7 +55,10 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Center / Right Zone: Distance & Active User Switcher */}
-        <div className="flex items-center gap-3 ml-auto">
+        <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+          {/* PWA Install Button */}
+          <PWAInstallButton variant="header" />
+
           {/* Geolocation Studio Indicator */}
           {currentDistance !== undefined && (
             <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-md text-xs text-slate-300">

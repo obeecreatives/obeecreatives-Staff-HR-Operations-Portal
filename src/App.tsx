@@ -17,6 +17,7 @@ import {
   calculateDistanceMeters,
 } from './utils/geo';
 import { Layers, CheckCircle2, RotateCcw } from 'lucide-react';
+import { OfflineIndicator } from './components/OfflineIndicator';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'directory' | 'attendance' | 'payroll' | 'sync'>('directory');
@@ -226,6 +227,9 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Offline Mode Indicator */}
+      <OfflineIndicator />
     </div>
   );
 }
