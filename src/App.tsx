@@ -19,6 +19,7 @@ import {
 import { Layers, CheckCircle2, RotateCcw } from 'lucide-react';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { ThemeToggle } from './components/ThemeToggle';
+import { MobileBottomNav } from './components/MobileBottomNav';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'directory' | 'attendance' | 'payroll' | 'sync'>('directory');
@@ -155,7 +156,7 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-6">
         {activeTab === 'directory' && (
           <StaffDirectoryView
             staffList={staffList}
@@ -204,7 +205,7 @@ export default function App() {
       </main>
 
       {/* Minimal Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-4 px-4 sm:px-6 lg:px-8 text-xs text-slate-500">
+      <footer className="border-t border-slate-900 bg-slate-950 py-4 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mb-16 md:mb-0">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-slate-400">obeecreatives</span>
@@ -229,6 +230,17 @@ export default function App() {
           </div>
         </div>
       </footer>
+
+      {/* Mobile Bottom Navigation Bar (md:hidden) */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        staffList={staffList}
+        currentUser={currentUser}
+        onSelectUser={handleSelectUser}
+        currentDistance={currentDistance}
+        onResetToSeed={handleResetToSeed}
+      />
 
       {/* Offline Mode Indicator */}
       <OfflineIndicator />

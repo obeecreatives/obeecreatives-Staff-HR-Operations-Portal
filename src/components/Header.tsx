@@ -45,11 +45,14 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Top Utility Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
         {/* Brand Zone */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex items-baseline tracking-tight">
             <span className="text-xl sm:text-2xl font-black text-slate-100">obee</span>
             <span className="text-xl sm:text-2xl font-black text-[#E30000]">creatives</span>
           </div>
+          <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">
+            HR
+          </span>
           <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-slate-400 pl-3 border-l border-slate-800">
             Staff & HR Operations Portal
           </span>
@@ -148,8 +151,8 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
       </div>
 
-      {/* Main Tab Navigation Bar */}
-      <div className="bg-slate-900 border-t border-slate-800">
+      {/* Main Tab Navigation Bar (Desktop & Tablet) */}
+      <div className="hidden md:block bg-slate-900 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto no-scrollbar">
           <nav className="flex space-x-1 sm:space-x-4 py-2">
             <button
