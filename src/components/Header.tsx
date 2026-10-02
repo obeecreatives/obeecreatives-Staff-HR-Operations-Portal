@@ -3,6 +3,7 @@ import { StaffUser } from '../types';
 import { MapPin, KeyRound, Building2 } from 'lucide-react';
 import { formatDistance } from '../utils/geo';
 import { PWAInstallButton } from './PWAInstallButton';
+import { ThemeToggle } from './ThemeToggle';
 
 interface HeaderProps {
   staffList: StaffUser[];
@@ -46,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Brand Zone */}
         <div className="flex items-center gap-3">
           <div className="flex items-baseline tracking-tight">
-            <span className="text-xl sm:text-2xl font-black text-white">obee</span>
+            <span className="text-xl sm:text-2xl font-black text-slate-100">obee</span>
             <span className="text-xl sm:text-2xl font-black text-[#E30000]">creatives</span>
           </div>
           <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-slate-400 pl-3 border-l border-slate-800">
@@ -54,8 +55,11 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
         </div>
 
-        {/* Center / Right Zone: Distance & Active User Switcher */}
+        {/* Center / Right Zone: Distance, Theme, PWA & Active User Switcher */}
         <div className="flex items-center gap-2 sm:gap-3 ml-auto">
+          {/* Light / Dark Mode Switcher */}
+          <ThemeToggle variant="header" />
+
           {/* PWA Install Button */}
           <PWAInstallButton variant="header" />
 

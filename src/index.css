@@ -1,1 +1,78 @@
 @import "tailwindcss";
+
+/* Base smooth transition for theme switching */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Light Theme Variables for Tailwind v4 */
+[data-theme="light"],
+html.light {
+  --color-slate-950: #f8fafc; /* Crisp page background */
+  --color-slate-900: #ffffff; /* Card / container background */
+  --color-slate-850: #f1f5f9; /* Card hover / secondary */
+  --color-slate-800: #e2e8f0; /* Subtle borders */
+  --color-slate-700: #cbd5e1; /* Secondary borders */
+  --color-slate-600: #94a3b8; /* Muted icons */
+  --color-slate-500: #64748b; /* Subtitle / helper text */
+  --color-slate-400: #475569; /* Secondary body text */
+  --color-slate-300: #334155; /* Normal text */
+  --color-slate-200: #1e293b; /* Strong text */
+  --color-slate-100: #0f172a; /* Main headings / primary text */
+  --color-slate-50: #020617;
+}
+
+/* Light Mode specific element refinements */
+[data-theme="light"] body {
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+/* Ensure text-white on headings and non-colored items invert smoothly to dark slate */
+[data-theme="light"] header .text-white:not([class*="bg-"]),
+[data-theme="light"] h1.text-white,
+[data-theme="light"] h2.text-white,
+[data-theme="light"] h3.text-white,
+[data-theme="light"] td.text-white,
+[data-theme="light"] strong.text-white,
+[data-theme="light"] span.text-white:not([class*="bg-"]):not(button *),
+[data-theme="light"] div.text-white:not([class*="bg-"]):not(button *),
+[data-theme="light"] p.text-white {
+  color: #0f172a;
+}
+
+/* Light Mode inputs & select controls */
+[data-theme="light"] input:not([type="checkbox"]):not([type="radio"]),
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Light mode subtle shadow for cards */
+[data-theme="light"] .bg-slate-900 {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+}
+
+/* Light mode table headers */
+[data-theme="light"] thead.bg-slate-950,
+[data-theme="light"] thead {
+  background-color: #f1f5f9;
+  color: #475569;
+  border-bottom-color: #e2e8f0;
+}
+
+/* Light mode modal overlays */
+[data-theme="light"] .fixed.inset-0.bg-black\/80,
+[data-theme="light"] .fixed.inset-0.bg-black\/75,
+[data-theme="light"] .fixed.inset-0.bg-black\/70,
+[data-theme="light"] .fixed.inset-0.bg-black\/60 {
+  background-color: rgb(15 23 42 / 0.55);
+  backdrop-filter: blur(4px);
+}

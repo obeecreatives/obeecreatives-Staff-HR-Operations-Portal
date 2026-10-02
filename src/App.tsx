@@ -18,6 +18,7 @@ import {
 } from './utils/geo';
 import { Layers, CheckCircle2, RotateCcw } from 'lucide-react';
 import { OfflineIndicator } from './components/OfflineIndicator';
+import { ThemeToggle } from './components/ThemeToggle';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'directory' | 'attendance' | 'payroll' | 'sync'>('directory');
@@ -214,6 +215,7 @@ export default function App() {
           </div>
 
           <div className="flex items-center gap-4">
+            <ThemeToggle variant="pill" />
             <button
               type="button"
               onClick={handleResetToSeed}

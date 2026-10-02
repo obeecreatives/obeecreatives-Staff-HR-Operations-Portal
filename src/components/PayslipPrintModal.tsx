@@ -244,7 +244,7 @@ export const PayslipPrintModal: React.FC<PayslipPrintModalProps> = ({
           </div>
 
           {/* Grand Total Net Salary */}
-          <div className="mt-4 p-3.5 bg-slate-950 text-white rounded flex items-center justify-between">
+          <div className="mt-4 p-3.5 bg-neutral-900 text-white rounded flex items-center justify-between">
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wider text-[#E30000]">
                 Gaji Bersih Yang Dibayarkan (Take-Home Pay)
