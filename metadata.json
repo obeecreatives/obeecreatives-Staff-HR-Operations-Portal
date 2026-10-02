@@ -1,0 +1,10 @@
+{
+  "name": "obeecreatives Staff & HR Operations Portal",
+  "description": "Portal terintegrasi operasional staf, presensi geo-lokasi, manajemen profil, payroll, dan sinkronisasi Project Control obeecreatives.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
