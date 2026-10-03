@@ -4,6 +4,9 @@ import {
   ContentFeeItem,
   PayrollRecord,
   GasSyncConfig,
+  LeaveRequest,
+  ExpenseClaim,
+  ProjectAssignment,
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -13,7 +16,10 @@ const STORAGE_KEYS = {
   PAYROLL: 'obee_payroll_records',
   GAS_CONFIG: 'obee_gas_config',
   ACTIVE_USER: 'obee_active_staff_id',
-  VERSION: 'obee_storage_version_master_v5',
+  LEAVES: 'obee_leave_requests',
+  EXPENSES: 'obee_expense_claims',
+  PROJECTS: 'obee_project_assignments',
+  VERSION: 'obee_storage_version_master_v6',
 };
 
 // Data Asli 7 Staf Terverifikasi dari Spreadsheet Database Staff obeecreatives (Tab: Staff)
@@ -471,6 +477,183 @@ export const INITIAL_PAYROLL_SEED: PayrollRecord[] = [
 const CURRENT_STORAGE_VERSION = 'v6_0_studio_kota_batu_verified';
 
 // Helper Storage API
+export const INITIAL_LEAVES_SEED: LeaveRequest[] = [
+  {
+    id: 'LEV-001',
+    staffId: 'STF-1785295519572',
+    staffName: 'Adissa Rifdah Aulia',
+    type: 'Izin Sakit',
+    startDate: '2026-09-18',
+    endDate: '2026-09-18',
+    totalDays: 1,
+    reason: 'Sakit flu & demam, istirahat dokter 1 hari',
+    status: 'Approved',
+    approvedBy: 'Lalu Mahendra',
+    approvalDate: '2026-09-18',
+    createdAt: '2026-09-18T07:15:00Z',
+  },
+  {
+    id: 'LEV-002',
+    staffId: 'STF-1785300550339',
+    staffName: 'Muhammad Labib Azka',
+    type: 'Tugas Luar Studio',
+    startDate: '2026-09-24',
+    endDate: '2026-09-24',
+    totalDays: 1,
+    reason: 'Liputan visual & asistensi workshop desain di Malang',
+    status: 'Approved',
+    approvedBy: 'Lalu Mahendra',
+    approvalDate: '2026-09-23',
+    createdAt: '2026-09-23T14:20:00Z',
+  },
+];
+
+export const INITIAL_EXPENSES_SEED: ExpenseClaim[] = [
+  {
+    id: 'EXP-001',
+    staffId: 'STF-1785303827045',
+    staffName: 'Lalu Mahendra Ali Akbar',
+    title: 'Bensin & Tol Mobil Operasional Photoshoot Bromo',
+    category: 'Bensin & Transport Shoot',
+    amount: 350000,
+    date: '2026-09-20',
+    status: 'Approved',
+    notes: 'Kru 4 orang berangkat subuh via Tumpang',
+    approvedBy: 'Finance Management',
+    createdAt: '2026-09-20T20:00:00Z',
+    isIncludedInPayroll: true,
+  },
+  {
+    id: 'EXP-002',
+    staffId: 'STF-1785295519572',
+    staffName: 'Adissa Rifdah Aulia',
+    title: 'Tiket Lokasi Shoot Cafe & Resto Batu',
+    category: 'Tiket Lokasi / Izin Lokasi',
+    amount: 150000,
+    date: '2026-09-22',
+    status: 'Approved',
+    notes: 'Biaya izin commercial take video reels',
+    approvedBy: 'Lalu Mahendra',
+    createdAt: '2026-09-22T16:30:00Z',
+    isIncludedInPayroll: true,
+  },
+  {
+    id: 'EXP-003',
+    staffId: 'STF-1785295519572',
+    staffName: 'Adissa Rifdah Aulia',
+    title: 'Konsumsi Kru Lapangan Sesi Konten',
+    category: 'Konsumsi Kru Lapangan',
+    amount: 95000,
+    date: '2026-09-28',
+    status: 'Pending',
+    notes: 'Makan siang 2 orang saat produksi reels klien',
+    createdAt: '2026-09-28T13:10:00Z',
+    isIncludedInPayroll: false,
+  },
+];
+
+export const INITIAL_PROJECTS_SEED: ProjectAssignment[] = [
+  {
+    id: 'PRJ-101',
+    clientName: 'Batu Eco Resto & Cafe',
+    projectName: 'Commercial Video & Menu Catalog Shoot',
+    category: 'Commercial Shoot',
+    location: 'Jl. Oro-Oro Ombo No. 12, Kec. Batu',
+    shootDate: '2026-10-05',
+    callTime: '07:30 WIB',
+    status: 'Upcoming',
+    totalProjectFee: 3500000,
+    crew: [
+      {
+        staffId: 'STF-1785303827045',
+        staffName: 'Lalu Mahendra Ali Akbar',
+        roleInProject: 'Lead Photographer',
+        customFee: 500000,
+      },
+      {
+        staffId: 'STF-1785295519572',
+        staffName: 'Adissa Rifdah Aulia',
+        roleInProject: 'Assistant & Lighting',
+        customFee: 250000,
+      },
+    ],
+    equipmentList: [
+      { id: 'eq-1', name: 'Sony A7IV Main Camera + Battery (3x)', checked: true },
+      { id: 'eq-2', name: 'Lens Sony FE 24-70mm F2.8 GM II', checked: true },
+      { id: 'eq-3', name: 'Lens Sony FE 85mm F1.4 GM', checked: true },
+      { id: 'eq-4', name: 'Godox AD200 Pro + Softbox Octa 80cm', checked: true },
+      { id: 'eq-5', name: 'Wireless Mic DJI Mic 2 (Transmitter + Receiver)', checked: true },
+      { id: 'eq-6', name: 'Tripod Carbon Fiber Sirui', checked: true },
+    ],
+    notes: 'Brief klien: tone warna natural warm, video 9:16 untuk Reels dan video horizontal 16:9 untuk Display Cafe.',
+    createdAt: '2026-09-29T10:00:00Z',
+  },
+  {
+    id: 'PRJ-102',
+    clientName: 'Inovasi Pangan Lestari',
+    projectName: 'Social Media Monthly Carousel & Reels Retainer',
+    category: 'Social Media Retainer',
+    location: 'Studio obeecreatives Kota Batu',
+    shootDate: '2026-10-02',
+    callTime: '09:00 WIB',
+    status: 'In Progress',
+    totalProjectFee: 2800000,
+    crew: [
+      {
+        staffId: 'STF-1785295519572',
+        staffName: 'Adissa Rifdah Aulia',
+        roleInProject: 'Project Coordinator',
+        customFee: 300000,
+      },
+      {
+        staffId: 'STF-1785300550339',
+        staffName: 'Muhammad Labib Azka',
+        roleInProject: 'Editor',
+        customFee: 200000,
+      },
+    ],
+    equipmentList: [
+      { id: 'eq-11', name: 'Studio Table Top Background Set', checked: true },
+      { id: 'eq-12', name: 'Continuous LED Amaran 200d', checked: true },
+      { id: 'eq-13', name: 'SD Card Sandisk Extreme Pro 128GB', checked: true },
+    ],
+    notes: 'Konten batch 4 carousel edukasi pangan + 3 video reels tips.',
+    createdAt: '2026-09-28T09:00:00Z',
+  },
+  {
+    id: 'PRJ-103',
+    clientName: 'Disparta Kota Batu',
+    projectName: 'Workshop Pelatihan Creative Content Creator',
+    category: 'Event & Workshop',
+    location: 'Graha Pancasila Balaikota Among Tani, Batu',
+    shootDate: '2026-10-15',
+    callTime: '08:00 WIB',
+    status: 'Upcoming',
+    totalProjectFee: 5000000,
+    crew: [
+      {
+        staffId: 'STF-1785303827045',
+        staffName: 'Lalu Mahendra Ali Akbar',
+        roleInProject: 'Lead Photographer',
+        customFee: 1000000,
+      },
+      {
+        staffId: 'STF-1785295519572',
+        staffName: 'Adissa Rifdah Aulia',
+        roleInProject: 'Project Coordinator',
+        customFee: 500000,
+      },
+    ],
+    equipmentList: [
+      { id: 'eq-21', name: 'Sony A7C II + 24-105mm F4 G', checked: false },
+      { id: 'eq-22', name: 'Presenter Clicker & HDMI Cable', checked: false },
+      { id: 'eq-23', name: 'Roll Banner & Handout Materi Peserta', checked: false },
+    ],
+    notes: 'Pemateri utama: Mas Hendra. Sesi praktek video smartphone dihandle tim kreatif.',
+    createdAt: '2026-09-30T11:00:00Z',
+  },
+];
+
 export const StorageService = {
   getStaff(): StaffUser[] {
     const version = localStorage.getItem(STORAGE_KEYS.VERSION);
@@ -614,11 +797,68 @@ export const StorageService = {
     localStorage.setItem(STORAGE_KEYS.ACTIVE_USER, id);
   },
 
+  getLeaves(): LeaveRequest[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.LEAVES);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(INITIAL_LEAVES_SEED));
+      return INITIAL_LEAVES_SEED;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : INITIAL_LEAVES_SEED;
+    } catch {
+      return INITIAL_LEAVES_SEED;
+    }
+  },
+
+  saveLeaves(leaves: LeaveRequest[]): void {
+    localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(leaves));
+  },
+
+  getExpenses(): ExpenseClaim[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES_SEED));
+      return INITIAL_EXPENSES_SEED;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : INITIAL_EXPENSES_SEED;
+    } catch {
+      return INITIAL_EXPENSES_SEED;
+    }
+  },
+
+  saveExpenses(expenses: ExpenseClaim[]): void {
+    localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(expenses));
+  },
+
+  getProjects(): ProjectAssignment[] {
+    const raw = localStorage.getItem(STORAGE_KEYS.PROJECTS);
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(INITIAL_PROJECTS_SEED));
+      return INITIAL_PROJECTS_SEED;
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : INITIAL_PROJECTS_SEED;
+    } catch {
+      return INITIAL_PROJECTS_SEED;
+    }
+  },
+
+  saveProjects(projects: ProjectAssignment[]): void {
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+  },
+
   resetToSeed(): void {
     localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(INITIAL_STAFF_SEED));
     localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(INITIAL_ATTENDANCE_SEED));
     localStorage.setItem(STORAGE_KEYS.CONTENT_FEES, JSON.stringify(INITIAL_CONTENT_FEES_SEED));
     localStorage.setItem(STORAGE_KEYS.PAYROLL, JSON.stringify(INITIAL_PAYROLL_SEED));
+    localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(INITIAL_LEAVES_SEED));
+    localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES_SEED));
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(INITIAL_PROJECTS_SEED));
     localStorage.setItem(STORAGE_KEYS.VERSION, CURRENT_STORAGE_VERSION);
   },
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StaffUser, AttendanceRecord, WorkMode } from '../types';
+import { StaffUser, AttendanceRecord, WorkMode, LeaveRequest } from '../types';
 import {
   MapPin,
   Clock,
@@ -11,12 +11,15 @@ import {
   FileSpreadsheet,
   Check,
   ShieldCheck,
+  FileText,
 } from 'lucide-react';
 import {
   STUDIO_COORDINATES,
   calculateDistanceMeters,
   formatDistance,
 } from '../utils/geo';
+import { exportAttendanceReport } from '../utils/exportExcel';
+import { LeaveManagementView } from './LeaveManagementView';
 
 interface GeoAttendanceViewProps {
   staffList: StaffUser[];
@@ -26,6 +29,10 @@ interface GeoAttendanceViewProps {
   onUpdateAttendance: (record: AttendanceRecord) => void;
   currentDistance?: number;
   onRefreshDistance: () => void;
+  leavesList?: LeaveRequest[];
+  onSaveLeave?: (leave: LeaveRequest) => void;
+  onUpdateLeave?: (leave: LeaveRequest) => void;
+  onDeleteLeave?: (id: string) => void;
 }
 
 export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
@@ -36,7 +43,12 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
   onUpdateAttendance,
   currentDistance,
   onRefreshDistance,
+  leavesList = [],
+  onSaveLeave,
+  onUpdateLeave,
+  onDeleteLeave,
 }) => {
+  const [subTab, setSubTab] = useState<'attendance' | 'leaves'>('attendance');
   const [selectedMonth, setSelectedMonth] = useState<string>('2026-09');
   const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>('ALL');
 
@@ -189,10 +201,68 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
     alpha: filteredAttendance.filter((a) => a.status === 'Alpha').length,
   };
 
+  const pendingLeavesCount = leavesList.filter((l) => l.status === 'Pending').length;
+
   return (
     <div className="space-y-6">
-      {/* Top Banner & Live Check-in Widget */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Sub-tab Navigation Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-2.5 shadow-sm">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSubTab('attendance')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors ${
+              subTab === 'attendance'
+                ? 'bg-[#E30000] text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Compass className="w-4 h-4" />
+            <span>Presensi Terminal &amp; GPS</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('leaves')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors ${
+              subTab === 'leaves'
+                ? 'bg-[#E30000] text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Calendar className="w-4 h-4" />
+            <span>Pengajuan Cuti &amp; Izin</span>
+            {pendingLeavesCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-black font-bold font-mono">
+                {pendingLeavesCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => exportAttendanceReport(attendanceList, staffList, selectedMonth)}
+          className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Export Rekap Absensi (.xlsx)</span>
+        </button>
+      </div>
+
+      {subTab === 'leaves' ? (
+        <LeaveManagementView
+          leavesList={leavesList}
+          staffList={staffList}
+          currentUser={currentUser}
+          onSaveLeave={onSaveLeave || (() => {})}
+          onUpdateLeave={onUpdateLeave || (() => {})}
+          onDeleteLeave={onDeleteLeave || (() => {})}
+        />
+      ) : (
+        <>
+          {/* Top Banner & Live Check-in Widget */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Live Check-in Desk */}
         <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-lg p-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800 gap-3">
@@ -595,6 +665,8 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };

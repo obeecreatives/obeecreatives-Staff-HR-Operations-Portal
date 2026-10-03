@@ -5,11 +5,17 @@ import {
   ContentFeeItem,
   PayrollRecord,
   GasSyncConfig,
+  LeaveRequest,
+  ExpenseClaim,
+  ProjectAssignment,
+  MainTabType,
 } from './types';
 import { StorageService } from './services/storage';
 import { Header } from './components/Header';
+import { DashboardKpiView } from './components/DashboardKpiView';
 import { StaffDirectoryView } from './components/StaffDirectoryView';
 import { GeoAttendanceView } from './components/GeoAttendanceView';
+import { ProjectCallSheetView } from './components/ProjectCallSheetView';
 import { PayrollModuleView } from './components/PayrollModuleView';
 import { ProjectControlSyncView } from './components/ProjectControlSyncView';
 import {
@@ -22,7 +28,7 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { MobileBottomNav } from './components/MobileBottomNav';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'directory' | 'attendance' | 'payroll' | 'sync'>('directory');
+  const [activeTab, setActiveTab] = useState<MainTabType>('dashboard');
 
   // Application Data States
   const [staffList, setStaffList] = useState<StaffUser[]>(() => StorageService.getStaff());
@@ -31,6 +37,9 @@ export default function App() {
   const [contentFees, setContentFees] = useState<ContentFeeItem[]>(() => StorageService.getContentFees());
   const [payrollList, setPayrollList] = useState<PayrollRecord[]>(() => StorageService.getPayroll());
   const [gasConfig, setGasConfig] = useState<GasSyncConfig>(() => StorageService.getGasConfig());
+  const [projectsList, setProjectsList] = useState<ProjectAssignment[]>(() => StorageService.getProjects());
+  const [expensesList, setExpensesList] = useState<ExpenseClaim[]>(() => StorageService.getExpenses());
+  const [leavesList, setLeavesList] = useState<LeaveRequest[]>(() => StorageService.getLeaves());
 
   // Real-time Geolocation distance to Studio Kota Batu
   const [currentDistance, setCurrentDistance] = useState<number | undefined>(undefined);
@@ -124,22 +133,106 @@ export default function App() {
     StorageService.saveStaff(newList);
   };
 
+  // Projects Handlers
+  const handleSaveProject = (p: ProjectAssignment) => {
+    const list = [p, ...projectsList];
+    setProjectsList(list);
+    StorageService.saveProjects(list);
+  };
+
+  const handleUpdateProject = (p: ProjectAssignment) => {
+    const list = projectsList.map((item) => (item.id === p.id ? p : item));
+    setProjectsList(list);
+    StorageService.saveProjects(list);
+  };
+
+  const handleDeleteProject = (id: string) => {
+    const list = projectsList.filter((item) => item.id !== id);
+    setProjectsList(list);
+    StorageService.saveProjects(list);
+  };
+
+  // Expenses Handlers
+  const handleSaveExpense = (e: ExpenseClaim) => {
+    const list = [e, ...expensesList];
+    setExpensesList(list);
+    StorageService.saveExpenses(list);
+  };
+
+  const handleUpdateExpense = (e: ExpenseClaim) => {
+    const list = expensesList.map((item) => (item.id === e.id ? e : item));
+    setExpensesList(list);
+    StorageService.saveExpenses(list);
+  };
+
+  const handleDeleteExpense = (id: string) => {
+    const list = expensesList.filter((item) => item.id !== id);
+    setExpensesList(list);
+    StorageService.saveExpenses(list);
+  };
+
+  // Leaves Handlers
+  const handleSaveLeave = (l: LeaveRequest) => {
+    const list = [l, ...leavesList];
+    setLeavesList(list);
+    StorageService.saveLeaves(list);
+  };
+
+  const handleUpdateLeave = (l: LeaveRequest) => {
+    const list = leavesList.map((item) => (item.id === l.id ? l : item));
+    setLeavesList(list);
+    StorageService.saveLeaves(list);
+  };
+
+  const handleDeleteLeave = (id: string) => {
+    const list = leavesList.filter((item) => item.id !== id);
+    setLeavesList(list);
+    StorageService.saveLeaves(list);
+  };
+
+  const handleSyncLeaveToAttendance = (leave: LeaveRequest) => {
+    const statusMap: Record<string, AttendanceRecord['status']> = {
+      'Cuti Tahunan': 'Cuti',
+      'Izin Sakit': 'Sakit',
+      'Izin Keperluan Pribadi': 'Izin',
+      'Tugas Luar Studio': 'Hadir',
+      'Lembur Shoot': 'Hadir',
+    };
+    const newRecord: AttendanceRecord = {
+      id: 'ATT-LEV-' + Date.now(),
+      staffId: leave.staffId,
+      staffName: leave.staffName,
+      date: leave.startDate,
+      workMode: leave.type === 'Tugas Luar Studio' ? 'On-Site' : 'WFO',
+      status: statusMap[leave.type] || 'Izin',
+      notes: `Pengajuan disetujui: ${leave.reason}`,
+      verifiedByGeo: leave.type === 'Tugas Luar Studio',
+    };
+    handleAddAttendance(newRecord);
+  };
+
   const handleSyncFromSheet = () => {
     // Reload local storage state
     setStaffList(StorageService.getStaff());
     setAttendanceList(StorageService.getAttendance());
     setContentFees(StorageService.getContentFees());
     setPayrollList(StorageService.getPayroll());
+    setProjectsList(StorageService.getProjects());
+    setExpensesList(StorageService.getExpenses());
+    setLeavesList(StorageService.getLeaves());
   };
 
   const handleResetToSeed = () => {
-    if (confirm('Kembalikan seluruh database staf, absensi, dan fee ke data seed awal obeecreatives?')) {
+    if (confirm('Kembalikan seluruh database staf, absensi, jadwal proyek, klaim biaya, dan fee ke data seed awal obeecreatives?')) {
       StorageService.resetToSeed();
       setStaffList(StorageService.getStaff());
       setAttendanceList(StorageService.getAttendance());
       setContentFees(StorageService.getContentFees());
       setPayrollList(StorageService.getPayroll());
-      alert('Data berhasil di-reset ke seed awal.');
+      setProjectsList(StorageService.getProjects());
+      setExpensesList(StorageService.getExpenses());
+      setLeavesList(StorageService.getLeaves());
+      alert('Seluruh data berhasil di-reset ke seed awal.');
     }
   };
 
@@ -157,6 +250,20 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-6">
+        {activeTab === 'dashboard' && (
+          <DashboardKpiView
+            staffList={staffList}
+            currentUser={currentUser}
+            attendanceList={attendanceList}
+            payrollList={payrollList}
+            projectsList={projectsList}
+            expensesList={expensesList}
+            leavesList={leavesList}
+            currentDistance={currentDistance}
+            onNavigateTab={setActiveTab}
+          />
+        )}
+
         {activeTab === 'directory' && (
           <StaffDirectoryView
             staffList={staffList}
@@ -176,6 +283,21 @@ export default function App() {
             onUpdateAttendance={handleUpdateAttendance}
             currentDistance={currentDistance}
             onRefreshDistance={refreshDistance}
+            leavesList={leavesList}
+            onSaveLeave={handleSaveLeave}
+            onUpdateLeave={handleUpdateLeave}
+            onDeleteLeave={handleDeleteLeave}
+          />
+        )}
+
+        {activeTab === 'projects' && (
+          <ProjectCallSheetView
+            projectsList={projectsList}
+            staffList={staffList}
+            currentUser={currentUser}
+            onSaveProject={handleSaveProject}
+            onUpdateProject={handleUpdateProject}
+            onDeleteProject={handleDeleteProject}
           />
         )}
 
@@ -189,6 +311,10 @@ export default function App() {
             gasConfig={gasConfig}
             onSavePayroll={handleSavePayroll}
             onUpdatePayrollStatus={handleUpdatePayrollStatus}
+            expensesList={expensesList}
+            onSaveExpense={handleSaveExpense}
+            onUpdateExpense={handleUpdateExpense}
+            onDeleteExpense={handleDeleteExpense}
           />
         )}
 
@@ -240,6 +366,8 @@ export default function App() {
         onSelectUser={handleSelectUser}
         currentDistance={currentDistance}
         onResetToSeed={handleResetToSeed}
+        attendanceList={attendanceList}
+        payrollList={payrollList}
       />
 
       {/* Offline Mode Indicator */}

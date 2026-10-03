@@ -137,3 +137,112 @@ export interface GasSyncConfig {
   lastSyncTime?: string;
   autoSync: boolean;
 }
+
+// ----------------------------------------------------
+// Modul 2: Pengajuan Izin, Cuti & Lembur
+// ----------------------------------------------------
+export type LeaveType =
+  | 'Cuti Tahunan'
+  | 'Izin Sakit'
+  | 'Izin Keperluan Pribadi'
+  | 'Tugas Luar Studio'
+  | 'Lembur Shoot';
+
+export type RequestStatus = 'Pending' | 'Approved' | 'Rejected';
+
+export interface LeaveRequest {
+  id: string;
+  staffId: string;
+  staffName: string;
+  type: LeaveType;
+  startDate: string; // YYYY-MM-DD
+  endDate: string;
+  totalDays: number;
+  reason: string;
+  attachmentUrl?: string; // Foto surat dokter / bukti tugas
+  status: RequestStatus;
+  approvedBy?: string;
+  approvalDate?: string;
+  rejectionReason?: string;
+  createdAt: string;
+}
+
+// ----------------------------------------------------
+// Modul 3: Klaim Reimbursement & Kasbon Operasional
+// ----------------------------------------------------
+export type ExpenseCategory =
+  | 'Bensin & Transport Shoot'
+  | 'Tiket Lokasi / Izin Lokasi'
+  | 'Konsumsi Kru Lapangan'
+  | 'Sewa Alat Tambahan'
+  | 'Parkir & Tol'
+  | 'Kasbon / Pinjaman Cepat'
+  | 'Lainnya';
+
+export interface ExpenseClaim {
+  id: string;
+  staffId: string;
+  staffName: string;
+  title: string;
+  category: ExpenseCategory;
+  amount: number;
+  date: string; // YYYY-MM-DD
+  receiptPhoto?: string; // Data URL foto struk/nota
+  status: 'Pending' | 'Approved' | 'Rejected' | 'Disbursed';
+  notes?: string;
+  approvedBy?: string;
+  createdAt: string;
+  isIncludedInPayroll?: boolean;
+}
+
+// ----------------------------------------------------
+// Modul 4: Jadwal Penugasan Proyek & Crew Call Sheet
+// ----------------------------------------------------
+export interface ProjectCrewMember {
+  staffId: string;
+  staffName: string;
+  roleInProject:
+    | 'Lead Photographer'
+    | 'Videographer'
+    | 'Drone Pilot'
+    | 'Assistant & Lighting'
+    | 'Editor'
+    | 'Project Coordinator';
+  customFee?: number;
+}
+
+export interface EquipmentItem {
+  id: string;
+  name: string;
+  checked: boolean;
+}
+
+export interface ProjectAssignment {
+  id: string;
+  clientName: string;
+  projectName: string;
+  category:
+    | 'Commercial Shoot'
+    | 'Prewedding & Wedding'
+    | 'Social Media Retainer'
+    | 'Event & Workshop'
+    | 'Product Catalog';
+  location: string;
+  shootDate: string; // YYYY-MM-DD
+  callTime: string; // e.g. "06:30 WIB"
+  status: 'Upcoming' | 'In Progress' | 'Completed' | 'Canceled';
+  crew: ProjectCrewMember[];
+  equipmentList: EquipmentItem[];
+  notes?: string;
+  totalProjectFee?: number;
+  createdAt: string;
+}
+
+export type MainTabType =
+  | 'dashboard'
+  | 'directory'
+  | 'attendance'
+  | 'projects'
+  | 'payroll'
+  | 'sync';
+

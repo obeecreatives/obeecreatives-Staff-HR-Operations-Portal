@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StaffUser } from '../types';
+import { StaffUser, MainTabType } from '../types';
 import { MapPin, KeyRound, Building2 } from 'lucide-react';
 import { formatDistance } from '../utils/geo';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -9,8 +9,8 @@ interface HeaderProps {
   staffList: StaffUser[];
   currentUser: StaffUser;
   onSelectUser: (user: StaffUser) => void;
-  activeTab: 'directory' | 'attendance' | 'payroll' | 'sync';
-  onTabChange: (tab: 'directory' | 'attendance' | 'payroll' | 'sync') => void;
+  activeTab: MainTabType;
+  onTabChange: (tab: MainTabType) => void;
   currentDistance?: number;
 }
 
@@ -154,50 +154,72 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Main Tab Navigation Bar (Desktop & Tablet) */}
       <div className="hidden md:block bg-slate-900 border-t border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex overflow-x-auto no-scrollbar">
-          <nav className="flex space-x-1 sm:space-x-4 py-2">
+          <nav className="flex space-x-1 sm:space-x-3 py-2">
+            <button
+              type="button"
+              onClick={() => onTabChange('dashboard')}
+              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
+                activeTab === 'dashboard'
+                  ? 'bg-[#E30000] text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              Dashboard &amp; KPI
+            </button>
             <button
               type="button"
               onClick={() => onTabChange('directory')}
-              className={`px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-md transition-colors whitespace-nowrap ${
+              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
                 activeTab === 'directory'
                   ? 'bg-[#E30000] text-white shadow-sm'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
-              Direktori Staf & Tim
+              Direktori Staf &amp; Tim
             </button>
             <button
               type="button"
               onClick={() => onTabChange('attendance')}
-              className={`px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-md transition-colors whitespace-nowrap ${
+              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
                 activeTab === 'attendance'
                   ? 'bg-[#E30000] text-white shadow-sm'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
-              Presensi & Geo-Location
+              Presensi &amp; Cuti/Izin
+            </button>
+            <button
+              type="button"
+              onClick={() => onTabChange('projects')}
+              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
+                activeTab === 'projects'
+                  ? 'bg-[#E30000] text-white shadow-sm'
+                  : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+              }`}
+            >
+              Call Sheet &amp; Shoot
             </button>
             <button
               type="button"
               onClick={() => onTabChange('payroll')}
-              className={`px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-md transition-colors whitespace-nowrap ${
+              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
                 activeTab === 'payroll'
                   ? 'bg-[#E30000] text-white shadow-sm'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
-              Rekap Gaji & Fee Konten
+              Payroll &amp; Reimburse
             </button>
             <button
               type="button"
               onClick={() => onTabChange('sync')}
-              className={`px-3.5 py-2 text-xs sm:text-sm font-semibold rounded-md transition-colors whitespace-nowrap ${
+              className={`px-3 py-2 text-xs font-semibold rounded-md transition-colors whitespace-nowrap ${
                 activeTab === 'sync'
                   ? 'bg-[#E30000] text-white shadow-sm'
                   : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
               }`}
             >
-              Integrasi Project Control & GAS
+              Sync GAS &amp; Export
             </button>
           </nav>
         </div>

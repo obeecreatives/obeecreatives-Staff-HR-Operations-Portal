@@ -5,6 +5,7 @@ import {
   AttendanceRecord,
   ContentFeeItem,
   GasSyncConfig,
+  ExpenseClaim,
 } from '../types';
 import {
   Banknote,
@@ -23,9 +24,13 @@ import {
   Sparkles,
   Lock,
   ShieldCheck,
+  Receipt,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { formatRupiah, formatPhoneForWhatsApp } from '../utils/geo';
+import { exportPayrollReport } from '../utils/exportExcel';
 import { PayslipPrintModal } from './PayslipPrintModal';
+import { ExpenseClaimsView } from './ExpenseClaimsView';
 
 interface PayrollModuleViewProps {
   payrollList: PayrollRecord[];
@@ -37,6 +42,10 @@ interface PayrollModuleViewProps {
   onSavePayroll: (record: PayrollRecord) => void;
   onDeletePayroll?: (id: string) => void;
   onUpdatePayrollStatus: (id: string, status: 'Belum' | 'Lunas', paymentDate?: string) => void;
+  expensesList?: ExpenseClaim[];
+  onSaveExpense?: (expense: ExpenseClaim) => void;
+  onUpdateExpense?: (expense: ExpenseClaim) => void;
+  onDeleteExpense?: (id: string) => void;
 }
 
 export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
@@ -49,8 +58,13 @@ export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
   onSavePayroll,
   onDeletePayroll,
   onUpdatePayrollStatus,
+  expensesList = [],
+  onSaveExpense,
+  onUpdateExpense,
+  onDeleteExpense,
 }) => {
   const [selectedStaffFilter, setSelectedStaffFilter] = useState('ALL');
+  const [subTab, setSubTab] = useState<'payroll' | 'expenses'>('payroll');
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [printPayroll, setPrintPayroll] = useState<{ payroll: PayrollRecord; staff: StaffUser } | null>(null);
 
@@ -409,11 +423,68 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
   const totalFeeAmount = filteredPayroll.reduce((acc, p) => acc + p.totalContentFee, 0);
   const countLunas = filteredPayroll.filter((p) => p.paymentStatus === 'Lunas').length;
   const countBelum = filteredPayroll.filter((p) => p.paymentStatus === 'Belum').length;
+  const pendingExpensesCount = (expensesList || []).filter((e) => e.status === 'Pending').length;
 
   return (
     <div className="space-y-6">
-      {/* Top Banner Zone */}
-      <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
+      {/* Sub-tab Navigation Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-2.5 shadow-sm">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSubTab('payroll')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors ${
+              subTab === 'payroll'
+                ? 'bg-[#E30000] text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Banknote className="w-4 h-4" />
+            <span>Slip Gaji &amp; Fee Konten</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('expenses')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 transition-colors ${
+              subTab === 'expenses'
+                ? 'bg-[#E30000] text-white shadow-sm'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+            }`}
+          >
+            <Receipt className="w-4 h-4" />
+            <span>Klaim Reimbursement &amp; Kasbon</span>
+            {pendingExpensesCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500 text-black font-bold font-mono">
+                {pendingExpensesCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => exportPayrollReport(payrollList, staffList)}
+          className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors self-start sm:self-auto"
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Export Rekap Payroll (.xlsx)</span>
+        </button>
+      </div>
+
+      {subTab === 'expenses' ? (
+        <ExpenseClaimsView
+          expensesList={expensesList || []}
+          staffList={staffList}
+          currentUser={currentUser}
+          onSaveExpense={onSaveExpense || (() => {})}
+          onUpdateExpense={onUpdateExpense || (() => {})}
+          onDeleteExpense={onDeleteExpense || (() => {})}
+        />
+      ) : (
+        <>
+          {/* Top Banner Zone */}
+          <div className="bg-slate-900 border border-slate-800 rounded-lg p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-white flex items-center gap-2">
@@ -1330,6 +1401,8 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
             </div>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import {
+  LayoutDashboard,
   Users,
   MapPin,
   CreditCard,
   RefreshCw,
+  Video,
+  FileSpreadsheet,
   Menu,
   X,
   Sun,
@@ -15,19 +18,22 @@ import {
   ShieldCheck,
   CheckCircle,
 } from 'lucide-react';
-import { StaffUser } from '../types';
+import { StaffUser, MainTabType, AttendanceRecord, PayrollRecord } from '../types';
 import { formatDistance } from '../utils/geo';
 import { useTheme } from '../hooks/useTheme';
 import { usePWAInstall } from '../hooks/usePWAInstall';
+import { exportAttendanceReport, exportPayrollReport } from '../utils/exportExcel';
 
 interface MobileBottomNavProps {
-  activeTab: 'directory' | 'attendance' | 'payroll' | 'sync';
-  onTabChange: (tab: 'directory' | 'attendance' | 'payroll' | 'sync') => void;
+  activeTab: MainTabType;
+  onTabChange: (tab: MainTabType) => void;
   staffList: StaffUser[];
   currentUser: StaffUser;
   onSelectUser: (user: StaffUser) => void;
   currentDistance?: number;
   onResetToSeed?: () => void;
+  attendanceList?: AttendanceRecord[];
+  payrollList?: PayrollRecord[];
 }
 
 export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
@@ -38,6 +44,8 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   onSelectUser,
   currentDistance,
   onResetToSeed,
+  attendanceList = [],
+  payrollList = [],
 }) => {
   const [showMenuSheet, setShowMenuSheet] = useState(false);
   const [showUserList, setShowUserList] = useState(false);
@@ -48,9 +56,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   const navItems = [
     {
-      id: 'directory' as const,
-      label: 'Direktori',
-      icon: Users,
+      id: 'dashboard' as const,
+      label: 'Dashboard',
+      icon: LayoutDashboard,
     },
     {
       id: 'attendance' as const,
@@ -58,14 +66,14 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
       icon: MapPin,
     },
     {
+      id: 'projects' as const,
+      label: 'Call Sheet',
+      icon: Video,
+    },
+    {
       id: 'payroll' as const,
       label: 'Payroll',
       icon: CreditCard,
-    },
-    {
-      id: 'sync' as const,
-      label: 'Sync GAS',
-      icon: RefreshCw,
     },
   ];
 
@@ -183,6 +191,77 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
             {/* Menu Options Body */}
             <div className="p-4 space-y-3">
+              {/* Quick Navigation Links */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTabChange('directory');
+                    setShowMenuSheet(false);
+                  }}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-colors ${
+                    activeTab === 'directory'
+                      ? 'bg-[#E30000]/15 border-[#E30000]/40 text-[#E30000]'
+                      : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-850'
+                  }`}
+                >
+                  <Users className="w-5 h-5 text-indigo-400" />
+                  <span className="text-xs font-bold">Direktori Staf</span>
+                  <span className="text-[10px] text-slate-500">Database Personel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTabChange('sync');
+                    setShowMenuSheet(false);
+                  }}
+                  className={`p-3 rounded-xl border flex flex-col items-center justify-center gap-1.5 transition-colors ${
+                    activeTab === 'sync'
+                      ? 'bg-[#E30000]/15 border-[#E30000]/40 text-[#E30000]'
+                      : 'bg-slate-950/80 border-slate-800 text-slate-300 hover:bg-slate-850'
+                  }`}
+                >
+                  <RefreshCw className="w-5 h-5 text-emerald-400" />
+                  <span className="text-xs font-bold">Sync GAS Sheet</span>
+                  <span className="text-[10px] text-slate-500">Headless Sync</span>
+                </button>
+              </div>
+
+              {/* 1-Click Export Excel */}
+              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                  <div>
+                    <div className="text-xs font-bold text-slate-200">Export Rekap Excel</div>
+                    <div className="text-[10px] text-slate-400">Unduh data CSV/Excel ke HP</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      exportAttendanceReport(attendanceList, staffList);
+                      setShowMenuSheet(false);
+                    }}
+                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] font-semibold"
+                  >
+                    Presensi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      exportPayrollReport(payrollList, staffList);
+                      setShowMenuSheet(false);
+                    }}
+                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] font-semibold"
+                  >
+                    Payroll
+                  </button>
+                </div>
+              </div>
+
               {/* Studio Distance Badge */}
               {currentDistance !== undefined && (
                 <div className="flex items-center justify-between p-3 bg-slate-950/80 border border-slate-800 rounded-xl">
