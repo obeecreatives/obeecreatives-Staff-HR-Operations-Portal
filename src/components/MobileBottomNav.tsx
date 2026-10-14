@@ -11,6 +11,8 @@ import {
   X,
   Sun,
   Moon,
+  Maximize2,
+  Minimize2,
   Download,
   Building2,
   KeyRound,
@@ -21,6 +23,7 @@ import {
 import { StaffUser, MainTabType, AttendanceRecord, PayrollRecord } from '../types';
 import { formatDistance } from '../utils/geo';
 import { useTheme } from '../hooks/useTheme';
+import { useFullscreen } from '../hooks/useFullscreen';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { exportAttendanceReport, exportPayrollReport } from '../utils/exportExcel';
 
@@ -52,6 +55,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
   const [pinTested, setPinTested] = useState(false);
 
   const { theme, toggleTheme, isDark } = useTheme();
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const { isInstalled, isInstallable, install, isIOS } = usePWAInstall();
 
   const navItems = [
@@ -79,9 +83,9 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
 
   return (
     <>
-      {/* Fixed Bottom Navigation Bar - Only on Mobile (md:hidden) */}
+      {/* Fixed Bottom Navigation Bar - Only on Mobile/Tablet (< lg) */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-slate-950/95 border-t border-slate-800/90 backdrop-blur-lg shadow-2xl transition-colors"
+        className="fixed bottom-0 left-0 right-0 z-40 lg:hidden bg-slate-950/95 border-t border-slate-800/90 backdrop-blur-lg shadow-2xl transition-colors"
         style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 8px)' }}
         aria-label="Navigasi Bawah Mobile"
       >
@@ -100,18 +104,17 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 className="flex flex-col items-center justify-center w-full h-full py-1 transition-all active:scale-95"
               >
                 <div
-                  className={`relative p-1 rounded-full transition-colors ${
-                    isActive ? 'text-[#E30000]' : 'text-slate-400 hover:text-slate-200'
+                  className={`p-1.5 rounded-xl transition-all ${
+                    isActive
+                      ? 'bg-[#E30000] text-white shadow-md shadow-[#E30000]/30 scale-105'
+                      : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
-                  {isActive && (
-                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-[#E30000] rounded-full shadow-sm shadow-red-500" />
-                  )}
                 </div>
                 <span
-                  className={`text-[10px] font-semibold tracking-tight leading-tight mt-0.5 ${
-                    isActive ? 'text-[#E30000] font-bold' : 'text-slate-400'
+                  className={`text-[10px] mt-0.5 tracking-tight ${
+                    isActive ? 'font-bold text-[#E30000]' : 'text-slate-400'
                   }`}
                 >
                   {item.label}
@@ -120,22 +123,26 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
             );
           })}
 
-          {/* 5th item: Menu Lain */}
+          {/* 5th Action: Menu Drawer */}
           <button
             type="button"
-            onClick={() => setShowMenuSheet(true)}
+            onClick={() => setShowMenuSheet(!showMenuSheet)}
             className="flex flex-col items-center justify-center w-full h-full py-1 transition-all active:scale-95"
           >
             <div
-              className={`p-1 rounded-full transition-colors ${
-                showMenuSheet ? 'text-[#E30000]' : 'text-slate-400 hover:text-slate-200'
+              className={`p-1.5 rounded-xl transition-all ${
+                showMenuSheet || activeTab === 'directory' || activeTab === 'sync'
+                  ? 'bg-slate-800 text-white border border-slate-700'
+                  : 'text-slate-400 hover:text-slate-200'
               }`}
             >
               <Menu className="w-5 h-5" />
             </div>
             <span
-              className={`text-[10px] font-semibold tracking-tight leading-tight mt-0.5 ${
-                showMenuSheet ? 'text-[#E30000] font-bold' : 'text-slate-400'
+              className={`text-[10px] mt-0.5 tracking-tight ${
+                showMenuSheet || activeTab === 'directory' || activeTab === 'sync'
+                  ? 'font-bold text-slate-100'
+                  : 'text-slate-400'
               }`}
             >
               Menu Lain
@@ -144,46 +151,38 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
         </div>
       </nav>
 
-      {/* Bottom Sheet Menu Drawer */}
+      {/* Slide-Up Bottom Drawer Sheet */}
       {showMenuSheet && (
-        <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end bg-black/70 backdrop-blur-xs transition-opacity animate-in fade-in">
-          {/* Backdrop click to close */}
+        <div className="fixed inset-0 z-50 lg:hidden flex flex-col justify-end">
+          {/* Backdrop */}
           <div
-            className="flex-1"
+            className="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity"
             onClick={() => setShowMenuSheet(false)}
-            aria-hidden="true"
           />
 
-          {/* Sheet Content Box */}
+          {/* Drawer Content */}
           <div
-            className="bg-slate-900 border-t border-slate-700/80 rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto flex flex-col animate-in slide-in-from-bottom duration-200 text-slate-100"
-            style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 20px)' }}
+            className="relative bg-slate-900 border-t border-slate-700/80 rounded-t-3xl max-h-[85vh] overflow-y-auto shadow-2xl text-slate-100 transition-transform"
+            style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 24px)' }}
           >
             {/* Grab Handle */}
-            <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto mt-3 mb-2" />
+            <div className="w-12 h-1.5 bg-slate-700 rounded-full mx-auto my-3 shrink-0" />
 
-            {/* Header */}
-            <div className="px-5 py-3 border-b border-slate-800 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded bg-[#E30000] text-white flex items-center justify-center text-xs font-bold">
-                  {currentUser.name
-                    .split(' ')
-                    .map((n) => n[0])
-                    .slice(0, 2)
-                    .join('')}
+            {/* Drawer Header */}
+            <div className="px-5 pb-3 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[#E30000] text-white flex items-center justify-center font-black text-sm">
+                  O
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-slate-100">{currentUser.name}</div>
-                  <div className="text-[10px] text-slate-400 capitalize">
-                    {currentUser.role.replace('_', ' ')} &middot; {currentUser.department}
-                  </div>
+                  <h3 className="text-sm font-bold leading-none">obeecreatives Workspace</h3>
+                  <span className="text-[10px] text-slate-400">Pusat Navigasi &amp; Kontrol HP</span>
                 </div>
               </div>
-
               <button
                 type="button"
                 onClick={() => setShowMenuSheet(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-100 bg-slate-800"
+                className="p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -234,7 +233,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                   <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
                   <div>
                     <div className="text-xs font-bold text-slate-200">Export Rekap Excel</div>
-                    <div className="text-[10px] text-slate-400">Unduh data CSV/Excel ke HP</div>
+                    <div className="text-[10px] text-slate-400">Unduh file .xlsx / CSV ke HP</div>
                   </div>
                 </div>
 
@@ -262,18 +261,33 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 </div>
               </div>
 
-              {/* Studio Distance Badge */}
-              {currentDistance !== undefined && (
-                <div className="flex items-center justify-between p-3 bg-slate-950/80 border border-slate-800 rounded-xl">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-[#E30000]" />
-                    <span className="text-xs text-slate-300">Jarak ke Studio Kota Batu:</span>
+              {/* Fullscreen Mode Switcher */}
+              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  {isFullscreen ? (
+                    <Minimize2 className="w-4 h-4 text-amber-400" />
+                  ) : (
+                    <Maximize2 className="w-4 h-4 text-indigo-400" />
+                  )}
+                  <div>
+                    <div className="text-xs font-bold text-slate-200">Layar Penuh (Full Screen)</div>
+                    <div className="text-[10px] text-slate-400">
+                      {isFullscreen ? 'Mode layar penuh aktif' : 'Tampilan aplikasi penuh tanpa browser bar'}
+                    </div>
                   </div>
-                  <span className="font-mono font-bold text-amber-400 text-xs">
-                    {formatDistance(currentDistance)}
-                  </span>
                 </div>
-              )}
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    toggleFullscreen();
+                    setShowMenuSheet(false);
+                  }}
+                  className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-lg text-xs font-semibold"
+                >
+                  {isFullscreen ? 'Keluar' : 'Aktifkan'}
+                </button>
+              </div>
 
               {/* Mode Terang / Gelap Switcher */}
               <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
@@ -286,7 +300,7 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                   <div>
                     <div className="text-xs font-bold text-slate-200">Mode Tampilan</div>
                     <div className="text-[10px] text-slate-400">
-                      {isDark ? 'Mode Gelap aktif' : 'Mode Terang aktif'}
+                      {isDark ? 'Mode Gelap aktif (Studio)' : 'Mode Terang aktif (Siang)'}
                     </div>
                   </div>
                 </div>
@@ -339,25 +353,66 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                 </div>
               )}
 
-              {/* Ganti Staf Aktif Accordion */}
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => setShowUserList(!showUserList)}
-                  className="w-full p-3 flex items-center justify-between text-left"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <Users className="w-4 h-4 text-emerald-400" />
-                    <div>
-                      <div className="text-xs font-bold text-slate-200">Ganti Staf Aktif</div>
-                      <div className="text-[10px] text-slate-400">Simulasi akses staf lain ({staffList.length} orang)</div>
+              {/* Studio Distance Badge */}
+              {currentDistance !== undefined && (
+                <div className="flex items-center justify-between p-3 bg-slate-950/80 border border-slate-800 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-[#E30000]" />
+                    <span className="text-xs text-slate-300">Jarak ke Studio Kota Batu:</span>
+                  </div>
+                  <span className="font-mono font-bold text-amber-400 text-xs">
+                    {formatDistance(currentDistance)}
+                  </span>
+                </div>
+              )}
+
+              {/* Active User Section & Switcher */}
+              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Personel Aktif
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowUserList(!showUserList)}
+                    className="text-[11px] text-[#E30000] font-bold hover:underline"
+                  >
+                    {showUserList ? 'Tutup Daftar' : 'Ganti Personel ▼'}
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-[#E30000] text-white flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden">
+                    {currentUser.avatar ? (
+                      <img
+                        src={currentUser.avatar}
+                        alt={currentUser.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      currentUser.name
+                        .split(' ')
+                        .map((n) => n[0])
+                        .slice(0, 2)
+                        .join('')
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-xs text-slate-100 truncate">
+                      {currentUser.name}
+                    </div>
+                    <div className="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                      <span className="px-1.5 py-0.2 rounded bg-slate-800 font-mono text-[9px] text-slate-300">
+                        {currentUser.role.toUpperCase()}
+                      </span>
+                      <span className="truncate">{currentUser.department || 'Studio Batu'}</span>
                     </div>
                   </div>
-                  <span className="text-xs text-slate-400">{showUserList ? '▲' : '▼'}</span>
-                </button>
+                </div>
 
+                {/* Collapsible User List */}
                 {showUserList && (
-                  <div className="p-2 border-t border-slate-800 max-h-48 overflow-y-auto space-y-1">
+                  <div className="pt-2 border-t border-slate-800 space-y-1 max-h-48 overflow-y-auto">
                     {staffList.map((user) => (
                       <button
                         key={user.id}
@@ -365,66 +420,36 @@ export const MobileBottomNav: React.FC<MobileBottomNavProps> = ({
                         onClick={() => {
                           onSelectUser(user);
                           setShowUserList(false);
-                          setShowMenuSheet(false);
                         }}
-                        className={`w-full px-2.5 py-1.5 rounded-lg flex items-center justify-between text-left text-xs ${
+                        className={`w-full p-2 rounded-lg text-left text-xs flex items-center justify-between transition-colors ${
                           user.id === currentUser.id
-                            ? 'bg-slate-800 text-white font-bold'
-                            : 'text-slate-300 hover:bg-slate-850'
+                            ? 'bg-[#E30000]/15 text-[#E30000] font-bold'
+                            : 'hover:bg-slate-850 text-slate-300'
                         }`}
                       >
-                        <div className="truncate">
-                          <div>{user.name}</div>
-                          <div className="text-[10px] text-slate-400 capitalize">{user.role}</div>
-                        </div>
-                        {user.id === currentUser.id && (
-                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        )}
+                        <span className="truncate">{user.name}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {user.department || user.role}
+                        </span>
                       </button>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* PIN Info & Testing */}
-              <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2.5">
-                  <KeyRound className="w-4 h-4 text-amber-400" />
-                  <div>
-                    <div className="text-xs font-bold text-slate-200">PIN Akses Staf</div>
-                    <div className="text-[10px] text-slate-400">
-                      PIN {currentUser.name}: <span className="font-mono text-amber-400 font-bold">{currentUser.pin || '123456'}</span>
-                    </div>
-                  </div>
-                </div>
-
+              {/* Reset to Seed Action */}
+              {onResetToSeed && (
                 <button
                   type="button"
                   onClick={() => {
-                    setPinTested(true);
-                    setTimeout(() => setPinTested(false), 2000);
+                    setShowMenuSheet(false);
+                    onResetToSeed();
                   }}
-                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-medium"
+                  className="w-full py-2 text-slate-500 hover:text-amber-400 text-xs flex items-center justify-center gap-1.5 transition-colors"
                 >
-                  {pinTested ? '✓ Valid' : 'Cek Status'}
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Reset Database ke Seed Asli</span>
                 </button>
-              </div>
-
-              {/* Reset to Seed Data */}
-              {onResetToSeed && (
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowMenuSheet(false);
-                      onResetToSeed();
-                    }}
-                    className="w-full py-2.5 px-3 bg-slate-950 hover:bg-slate-850 border border-slate-800 rounded-xl text-xs text-slate-400 hover:text-amber-400 flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Kembalikan Data Awal (Reset Seed)</span>
-                  </button>
-                </div>
               )}
             </div>
           </div>

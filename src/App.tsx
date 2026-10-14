@@ -11,6 +11,7 @@ import {
   MainTabType,
 } from './types';
 import { StorageService } from './services/storage';
+import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardKpiView } from './components/DashboardKpiView';
 import { StaffDirectoryView } from './components/StaffDirectoryView';
@@ -30,7 +31,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 export default function App() {
   const [activeTab, setActiveTab] = useState<MainTabType>('dashboard');
 
-  // Application Data States
+  // Application Data States (Sesuai Database Staff Seed 7 Personel Terverifikasi)
   const [staffList, setStaffList] = useState<StaffUser[]>(() => StorageService.getStaff());
   const [currentUserId, setCurrentUserId] = useState<string>(() => StorageService.getActiveUserId());
   const [attendanceList, setAttendanceList] = useState<AttendanceRecord[]>(() => StorageService.getAttendance());
@@ -212,7 +213,6 @@ export default function App() {
   };
 
   const handleSyncFromSheet = () => {
-    // Reload local storage state
     setStaffList(StorageService.getStaff());
     setAttendanceList(StorageService.getAttendance());
     setContentFees(StorageService.getContentFees());
@@ -236,128 +236,144 @@ export default function App() {
     }
   };
 
+  const pendingLeavesCount = leavesList.filter((l) => l.status === 'Pending').length;
+  const pendingExpensesCount = expensesList.filter((e) => e.status === 'Pending').length;
+  const upcomingProjectsCount = projectsList.filter((p) => p.status === 'Upcoming' || p.status === 'In Progress').length;
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-[#E30000] selection:text-white">
-      {/* Header & Navigation */}
-      <Header
-        staffList={staffList}
-        currentUser={currentUser}
-        onSelectUser={handleSelectUser}
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex font-sans selection:bg-[#E30000] selection:text-white antialiased transition-colors">
+      {/* Sisi Kiri: Mini Sidebar di Sisi Kiri Layar (Desktop & Tablet) */}
+      <Sidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        currentDistance={currentDistance}
+        currentUser={currentUser}
+        pendingLeavesCount={pendingLeavesCount}
+        pendingExpensesCount={pendingExpensesCount}
+        upcomingProjectsCount={upcomingProjectsCount}
       />
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 md:pb-6">
-        {activeTab === 'dashboard' && (
-          <DashboardKpiView
-            staffList={staffList}
-            currentUser={currentUser}
-            attendanceList={attendanceList}
-            payrollList={payrollList}
-            projectsList={projectsList}
-            expensesList={expensesList}
-            leavesList={leavesList}
-            currentDistance={currentDistance}
-            onNavigateTab={setActiveTab}
-          />
-        )}
+      {/* Sisi Kanan: Header & Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 min-h-screen">
+        <Header
+          staffList={staffList}
+          currentUser={currentUser}
+          onSelectUser={handleSelectUser}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          currentDistance={currentDistance}
+        />
 
-        {activeTab === 'directory' && (
-          <StaffDirectoryView
-            staffList={staffList}
-            currentUser={currentUser}
-            onUpdateStaff={handleUpdateStaff}
-            onAddStaff={handleAddStaff}
-            onResetToSeed={handleResetToSeed}
-          />
-        )}
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24 lg:pb-8">
+          {activeTab === 'dashboard' && (
+            <DashboardKpiView
+              staffList={staffList}
+              currentUser={currentUser}
+              attendanceList={attendanceList}
+              payrollList={payrollList}
+              projectsList={projectsList}
+              expensesList={expensesList}
+              leavesList={leavesList}
+              currentDistance={currentDistance}
+              onNavigateTab={setActiveTab}
+            />
+          )}
 
-        {activeTab === 'attendance' && (
-          <GeoAttendanceView
-            staffList={staffList}
-            currentUser={currentUser}
-            attendanceList={attendanceList}
-            onAddAttendance={handleAddAttendance}
-            onUpdateAttendance={handleUpdateAttendance}
-            currentDistance={currentDistance}
-            onRefreshDistance={refreshDistance}
-            leavesList={leavesList}
-            onSaveLeave={handleSaveLeave}
-            onUpdateLeave={handleUpdateLeave}
-            onDeleteLeave={handleDeleteLeave}
-          />
-        )}
+          {activeTab === 'directory' && (
+            <StaffDirectoryView
+              staffList={staffList}
+              currentUser={currentUser}
+              onUpdateStaff={handleUpdateStaff}
+              onAddStaff={handleAddStaff}
+              onResetToSeed={handleResetToSeed}
+            />
+          )}
 
-        {activeTab === 'projects' && (
-          <ProjectCallSheetView
-            projectsList={projectsList}
-            staffList={staffList}
-            currentUser={currentUser}
-            onSaveProject={handleSaveProject}
-            onUpdateProject={handleUpdateProject}
-            onDeleteProject={handleDeleteProject}
-          />
-        )}
+          {activeTab === 'attendance' && (
+            <GeoAttendanceView
+              staffList={staffList}
+              currentUser={currentUser}
+              attendanceList={attendanceList}
+              onAddAttendance={handleAddAttendance}
+              onUpdateAttendance={handleUpdateAttendance}
+              currentDistance={currentDistance}
+              onRefreshDistance={refreshDistance}
+              leavesList={leavesList}
+              onSaveLeave={handleSaveLeave}
+              onUpdateLeave={handleUpdateLeave}
+              onDeleteLeave={handleDeleteLeave}
+            />
+          )}
 
-        {activeTab === 'payroll' && (
-          <PayrollModuleView
-            payrollList={payrollList}
-            staffList={staffList}
-            attendanceList={attendanceList}
-            contentFees={contentFees}
-            currentUser={currentUser}
-            gasConfig={gasConfig}
-            onSavePayroll={handleSavePayroll}
-            onUpdatePayrollStatus={handleUpdatePayrollStatus}
-            expensesList={expensesList}
-            onSaveExpense={handleSaveExpense}
-            onUpdateExpense={handleUpdateExpense}
-            onDeleteExpense={handleDeleteExpense}
-          />
-        )}
+          {activeTab === 'projects' && (
+            <ProjectCallSheetView
+              projectsList={projectsList}
+              staffList={staffList}
+              currentUser={currentUser}
+              onSaveProject={handleSaveProject}
+              onUpdateProject={handleUpdateProject}
+              onDeleteProject={handleDeleteProject}
+            />
+          )}
 
-        {activeTab === 'sync' && (
-          <ProjectControlSyncView
-            staffList={staffList}
-            gasConfig={gasConfig}
-            onUpdateGasConfig={handleUpdateGasConfig}
-            onSyncFromSheet={handleSyncFromSheet}
-            onImportStaff={handleImportStaff}
-            contentFees={contentFees}
-          />
-        )}
-      </main>
+          {activeTab === 'payroll' && (
+            <PayrollModuleView
+              payrollList={payrollList}
+              staffList={staffList}
+              attendanceList={attendanceList}
+              contentFees={contentFees}
+              currentUser={currentUser}
+              gasConfig={gasConfig}
+              onSavePayroll={handleSavePayroll}
+              onUpdatePayrollStatus={handleUpdatePayrollStatus}
+              expensesList={expensesList}
+              onSaveExpense={handleSaveExpense}
+              onUpdateExpense={handleUpdateExpense}
+              onDeleteExpense={handleDeleteExpense}
+            />
+          )}
 
-      {/* Minimal Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-4 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mb-16 md:mb-0">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-400">obeecreatives</span>
-            <span>&middot;</span>
-            <span>Staff &amp; HR Operations Portal</span>
-            <span>&middot;</span>
-            <span className="font-mono text-[11px] text-slate-600">v2.4 Headless GAS</span>
+          {activeTab === 'sync' && (
+            <ProjectControlSyncView
+              staffList={staffList}
+              gasConfig={gasConfig}
+              onUpdateGasConfig={handleUpdateGasConfig}
+              onSyncFromSheet={handleSyncFromSheet}
+              onImportStaff={handleImportStaff}
+              contentFees={contentFees}
+            />
+          )}
+        </main>
+
+        {/* Minimal Footer */}
+        <footer className="border-t border-slate-900 bg-slate-950/80 py-4 px-4 sm:px-6 lg:px-8 text-xs text-slate-500 mb-16 lg:mb-0 transition-colors">
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-slate-400">obeecreatives</span>
+              <span>&middot;</span>
+              <span>Staff &amp; Operations Portal</span>
+              <span>&middot;</span>
+              <span className="font-mono text-[11px] text-slate-600">v2.4 Headless GAS</span>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <ThemeToggle variant="pill" />
+              <button
+                type="button"
+                onClick={handleResetToSeed}
+                className="text-[11px] text-slate-500 hover:text-amber-400 transition-colors flex items-center gap-1"
+                title="Reset ke data seed awal"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Reset Data Seed</span>
+              </button>
+              <span>&copy; {new Date().getFullYear()} obeecreatives. All rights reserved.</span>
+            </div>
           </div>
+        </footer>
+      </div>
 
-          <div className="flex items-center gap-4">
-            <ThemeToggle variant="pill" />
-            <button
-              type="button"
-              onClick={handleResetToSeed}
-              className="text-[11px] text-slate-500 hover:text-amber-400 transition-colors flex items-center gap-1"
-              title="Reset ke data seed awal"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Reset Data Seed</span>
-            </button>
-            <span>&copy; {new Date().getFullYear()} obeecreatives. All rights reserved.</span>
-          </div>
-        </div>
-      </footer>
-
-      {/* Mobile Bottom Navigation Bar (md:hidden) */}
+      {/* Mobile Bottom Navigation Bar (lg:hidden) */}
       <MobileBottomNav
         activeTab={activeTab}
         onTabChange={setActiveTab}
