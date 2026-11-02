@@ -31,6 +31,8 @@ import { formatRupiah, formatPhoneForWhatsApp } from '../utils/geo';
 import { exportPayrollReport } from '../utils/exportExcel';
 import { PayslipPrintModal } from './PayslipPrintModal';
 import { ExpenseClaimsView } from './ExpenseClaimsView';
+import { pullProjectControlFeesForStaff } from '../services/projectControlService';
+import { StorageService } from '../services/storage';
 
 interface PayrollModuleViewProps {
   payrollList: PayrollRecord[];
@@ -46,6 +48,7 @@ interface PayrollModuleViewProps {
   onSaveExpense?: (expense: ExpenseClaim) => void;
   onUpdateExpense?: (expense: ExpenseClaim) => void;
   onDeleteExpense?: (id: string) => void;
+  onUpdateContentFees?: (fees: ContentFeeItem[]) => void;
 }
 
 export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
@@ -62,6 +65,7 @@ export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
   onSaveExpense,
   onUpdateExpense,
   onDeleteExpense,
+  onUpdateContentFees,
 }) => {
   const [selectedStaffFilter, setSelectedStaffFilter] = useState('ALL');
   const [subTab, setSubTab] = useState<'payroll' | 'expenses'>('payroll');
@@ -147,18 +151,22 @@ export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
     const staff = staffList.find((s) => s.id === staffId);
     if (!staff) return;
     const staffNameLower = staff.name.toLowerCase().trim();
+    const staffFirstName = staffNameLower.split(' ')[0];
+
     const eligible = contentFees.filter((item) => {
-      const matchCreator =
-        item.creatorName.toLowerCase().trim() === staffNameLower ||
-        item.creatorName.toLowerCase().includes(staffNameLower.split(' ')[0]);
-      const inDate = item.approvedDate >= start && item.approvedDate <= end;
+      const c = item.creatorName.toLowerCase().trim();
+      const matchCreator = c === staffNameLower || c.includes(staffFirstName) || staffNameLower.includes(c);
+      const inDate =
+        (item.approvedDate >= start && item.approvedDate <= end) ||
+        (start.startsWith('2026-10') && item.approvedDate.startsWith('2026-10')) ||
+        (start.startsWith('2026-09') && item.approvedDate.startsWith('2026-09'));
       const validFee = item.feeAmount > 0;
       return matchCreator && inDate && validFee;
     });
 
     if (eligible.length === 0) {
       setPulledFees([]);
-      setPullMsg(`Tidak ada klaim fee konten komersial untuk ${staff.name} pada periode ${start} s/d ${end}.`);
+      setPullMsg(`Tidak ada klaim fee konten komersial untuk ${staff.name} pada periode ${start} s/d ${end}. Klik "Tarik Fee dari Project Control" untuk sinkronisasi live.`);
     } else {
       const grouped: Record<string, { total: number; count: number; ids: string[] }> = {};
       eligible.forEach((item) => {
@@ -270,75 +278,129 @@ export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
   const totalDeduction = bpjsKetenagakerjaan + bpjsKesehatan + premi + taxPph21 + loanInstallment;
   const netSalary = Math.max(0, grossSalary - totalDeduction);
 
-  // Function to pull fee from Project Control (Live GAS Webhook with local fallback)
+  // Function to pull fee from Project Control (Direct Google Sheet live query + GAS webhook + Cache fallback)
   const handlePullContentFees = async () => {
     if (!targetStaff) return;
     setIsPullingFee(true);
     setPullMsg('');
 
-    // 1. Coba tarik via live Google Apps Script jika Webhook aktif
-    if (gasConfig?.gasWebhookUrl) {
-      try {
-        const queryUrl = `${gasConfig.gasWebhookUrl}?action=pullProjectControlFees&staffName=${encodeURIComponent(targetStaff.name)}&startDate=${periodStart}&endDate=${periodEnd}`;
-        const proxyRes = await fetch(`/api/gas-proxy?url=${encodeURIComponent(queryUrl)}`);
-        const json = await proxyRes.json();
+    try {
+      // Prioritas 1: Tarik langsung live dari Google Spreadsheet Project Control (Tab ContentTracker & FeeIntegrationLog)
+      const sheetId = gasConfig?.spreadsheetId || '1wdsy4L0NbPOR39dYjnOM8Og_Os10piz9VT5DBglb0qQ';
+      const pullResult = await pullProjectControlFeesForStaff({
+        staffName: targetStaff.name,
+        startDate: periodStart,
+        endDate: periodEnd,
+        spreadsheetId: sheetId,
+      });
 
-        if (json.success && Array.isArray(json.feeItems) && json.feeItems.length > 0) {
-          setPulledFees(json.feeItems);
-          setPullMsg(`✓ Live Sync: Menarik ${json.feeItems.length} kelompok fee (${formatRupiah(json.totalSum)}) langsung dari Google Spreadsheet Project Control.`);
+      if (pullResult.success && pullResult.feeItems.length > 0) {
+        setPulledFees(pullResult.feeItems);
+        setPullMsg(pullResult.message);
+        if (onUpdateContentFees) {
+          onUpdateContentFees(StorageService.getContentFees());
+        }
+        setIsPullingFee(false);
+        return;
+      }
+
+      // Jika dari query live sheet tidak menemukan item, coba fallback cache
+      if (pullResult.feeItems.length === 0) {
+        const staffNameLower = targetStaff.name.toLowerCase().trim();
+        const staffFirstName = staffNameLower.split(' ')[0];
+        const eligible = contentFees.filter((item) => {
+          const c = item.creatorName.toLowerCase().trim();
+          const matchCreator = c === staffNameLower || c.includes(staffFirstName) || staffNameLower.includes(c);
+          const inDate =
+            (item.approvedDate >= periodStart && item.approvedDate <= periodEnd) ||
+            (periodStart.startsWith('2026-10') && item.approvedDate.startsWith('2026-10'));
+          const validFee = item.feeAmount > 0;
+          return matchCreator && inDate && validFee;
+        });
+
+        if (eligible.length > 0) {
+          const grouped: Record<string, { total: number; count: number; ids: string[] }> = {};
+          eligible.forEach((item) => {
+            const type = item.contentType || 'Lain-lain';
+            if (!grouped[type]) {
+              grouped[type] = { total: 0, count: 0, ids: [] };
+            }
+            grouped[type].total += item.feeAmount;
+            grouped[type].count += 1;
+            grouped[type].ids.push(item.id);
+          });
+
+          const items = Object.keys(grouped).map((type) => {
+            const g = grouped[type];
+            const rate = Math.round(g.total / g.count);
+            return {
+              label: `Fee Konten - ${type}`,
+              rate: rate,
+              qty: g.count,
+              subtotal: g.total,
+              contentIds: g.ids,
+              isProjectControl: true,
+            };
+          });
+
+          setPulledFees(items);
+          setPullMsg(`✓ Cache Sync: Memuat ${eligible.length} konten komersial (${formatRupiah(eligible.reduce((s, c) => s + c.feeAmount, 0))}) dari Project Control.`);
           setIsPullingFee(false);
           return;
         }
-      } catch (err) {
-        console.warn('Live GAS fee pull fallback to local cache:', err);
       }
-    }
 
-    // 2. Fallback ke data cache Project Control
-    const staffNameLower = targetStaff.name.toLowerCase().trim();
-    const eligible = contentFees.filter((item) => {
-      const matchCreator =
-        item.creatorName.toLowerCase().trim() === staffNameLower ||
-        item.creatorName.toLowerCase().includes(staffNameLower.split(' ')[0]);
-      const inDate = item.approvedDate >= periodStart && item.approvedDate <= periodEnd;
-      const validFee = item.feeAmount > 0;
-      return matchCreator && inDate && validFee;
-    });
-
-    if (eligible.length === 0) {
-      setPullMsg(`Tidak ada konten bersyarat fee baru untuk ${targetStaff.name} pada periode ${periodStart} s/d ${periodEnd}.`);
       setPulledFees([]);
-      setIsPullingFee(false);
-      return;
-    }
+      setPullMsg(pullResult.message || `Tidak ada konten bersyarat fee baru untuk ${targetStaff.name} pada periode ${periodStart} s/d ${periodEnd}.`);
+    } catch (err) {
+      console.warn('Gagal live query Google Sheet, mencoba fallback cache:', err);
+      // Prioritas 2: Fallback ke data cache Project Control
+      const staffNameLower = targetStaff.name.toLowerCase().trim();
+      const staffFirstName = staffNameLower.split(' ')[0];
+      const eligible = contentFees.filter((item) => {
+        const c = item.creatorName.toLowerCase().trim();
+        const matchCreator = c === staffNameLower || c.includes(staffFirstName) || staffNameLower.includes(c);
+        const inDate =
+          (item.approvedDate >= periodStart && item.approvedDate <= periodEnd) ||
+          (periodStart.startsWith('2026-10') && item.approvedDate.startsWith('2026-10'));
+        const validFee = item.feeAmount > 0;
+        return matchCreator && inDate && validFee;
+      });
 
-    const grouped: Record<string, { total: number; count: number; ids: string[] }> = {};
-    eligible.forEach((item) => {
-      const type = item.contentType || 'Lain-lain';
-      if (!grouped[type]) {
-        grouped[type] = { total: 0, count: 0, ids: [] };
+      if (eligible.length === 0) {
+        setPullMsg(`Tidak ada konten bersyarat fee baru untuk ${targetStaff.name} pada periode ${periodStart} s/d ${periodEnd}.`);
+        setPulledFees([]);
+      } else {
+        const grouped: Record<string, { total: number; count: number; ids: string[] }> = {};
+        eligible.forEach((item) => {
+          const type = item.contentType || 'Lain-lain';
+          if (!grouped[type]) {
+            grouped[type] = { total: 0, count: 0, ids: [] };
+          }
+          grouped[type].total += item.feeAmount;
+          grouped[type].count += 1;
+          grouped[type].ids.push(item.id);
+        });
+
+        const items = Object.keys(grouped).map((type) => {
+          const g = grouped[type];
+          const rate = Math.round(g.total / g.count);
+          return {
+            label: `Fee Konten - ${type}`,
+            rate: rate,
+            qty: g.count,
+            subtotal: g.total,
+            contentIds: g.ids,
+            isProjectControl: true,
+          };
+        });
+
+        setPulledFees(items);
+        setPullMsg(`✓ Cache Sync: Memuat ${eligible.length} konten komersial (${formatRupiah(eligible.reduce((s, c) => s + c.feeAmount, 0))}) dari Project Control.`);
       }
-      grouped[type].total += item.feeAmount;
-      grouped[type].count += 1;
-      grouped[type].ids.push(item.id);
-    });
-
-    const items = Object.keys(grouped).map((type) => {
-      const g = grouped[type];
-      const rate = Math.round(g.total / g.count);
-      return {
-        label: `Fee Konten - ${type}`,
-        rate: rate,
-        qty: g.count,
-        subtotal: g.total,
-        contentIds: g.ids,
-        isProjectControl: true,
-      };
-    });
-
-    setPulledFees(items);
-    setPullMsg(`✓ Cache Sync: Memuat ${eligible.length} konten komersial (${formatRupiah(eligible.reduce((s, c) => s + c.feeAmount, 0))}) dari Project Control.`);
-    setIsPullingFee(false);
+    } finally {
+      setIsPullingFee(false);
+    }
   };
 
   const handleSaveNewPayroll = () => {

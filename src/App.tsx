@@ -330,6 +330,7 @@ export default function App() {
               onSaveExpense={handleSaveExpense}
               onUpdateExpense={handleUpdateExpense}
               onDeleteExpense={handleDeleteExpense}
+              onUpdateContentFees={(fees) => setContentFees(fees)}
             />
           )}
 

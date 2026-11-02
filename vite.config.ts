@@ -101,7 +101,7 @@ export default defineConfig(() => {
                 method: 'GET',
                 redirect: 'follow',
                 headers: {
-                  'Accept': 'application/json',
+                  'Accept': '*/*',
                 },
               });
               const text = await gasRes.text();
@@ -110,12 +110,22 @@ export default defineConfig(() => {
                 const json = JSON.parse(text);
                 res.end(JSON.stringify(json));
               } catch {
-                res.end(JSON.stringify({
-                  success: false,
-                  isHtml: true,
-                  message: 'Google Apps Script mengembalikan halaman HTML Web App lama, bukan data JSON REST API.',
-                  snippet: text.slice(0, 300),
-                }));
+                const trimmed = text.trim();
+                const isHtml = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html') || trimmed.startsWith('<!doctype');
+                if (!isHtml) {
+                  res.end(JSON.stringify({
+                    success: true,
+                    isCsv: true,
+                    data: text,
+                  }));
+                } else {
+                  res.end(JSON.stringify({
+                    success: false,
+                    isHtml: true,
+                    message: 'Google Apps Script mengembalikan halaman HTML Web App lama, bukan data JSON REST API.',
+                    snippet: text.slice(0, 300),
+                  }));
+                }
               }
             } catch (err: any) {
               res.statusCode = 500;

@@ -86,7 +86,7 @@ const JAM_KELUAR_DEFAULT = '17:00';
 const AUTO_ATTENDANCE_TRIGGER_FN = 'dailyAutoAttendanceTrigger';
 
 // ---- Konfigurasi Integrasi Project Control ----
-const PROJECT_CONTROL_SPREADSHEET_ID = '1el1tK4NGhoslMWECWzIo-7nBAEox6KZ-2TjlJ6WLIV8';
+const PROJECT_CONTROL_SPREADSHEET_ID = '1wdsy4L0NbPOR39dYjnOM8Og_Os10piz9VT5DBglb0qQ';
 const PC_CONTENT_SHEET_NAME = 'ContentTracker';
 const PC_FEELOG_SHEET_NAME = 'FeeIntegrationLog';
 const PC_PUSHED_TO_LABEL = 'Payroll';

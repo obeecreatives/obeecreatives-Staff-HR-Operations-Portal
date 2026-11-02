@@ -12,7 +12,7 @@ export default async function handler(req: any, res: any) {
       method: 'GET',
       redirect: 'follow',
       headers: {
-        Accept: 'application/json',
+        Accept: '*/*',
       },
     });
 
@@ -22,11 +22,20 @@ export default async function handler(req: any, res: any) {
       const json = JSON.parse(text);
       return res.status(200).json(json);
     } catch {
+      const trimmed = text.trim();
+      const isHtml = trimmed.startsWith('<!DOCTYPE') || trimmed.startsWith('<html') || trimmed.startsWith('<!doctype');
+      if (!isHtml) {
+        return res.status(200).json({
+          success: true,
+          isCsv: true,
+          data: text,
+        });
+      }
       return res.status(200).json({
         success: false,
         isHtml: true,
         message:
-          'Google Apps Script mengembalikan halaman HTML Web App, bukan data JSON REST API.',
+          'Google Apps Script mengembalikan halaman HTML Web App, bukan data JSON/CSV REST API.',
         snippet: text.slice(0, 300),
       });
     }

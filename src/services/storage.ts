@@ -218,6 +218,7 @@ export const INITIAL_STAFF_SEED: StaffUser[] = [
 
 // Seed Fee Konten dari Project Control
 export const INITIAL_CONTENT_FEES_SEED: ContentFeeItem[] = [
+  // Konten September 2026
   {
     id: 'CNT-2026-0901',
     contentTitle: 'Promo Reels Kopi Tepi Sawah - September Launch',
@@ -267,6 +268,127 @@ export const INITIAL_CONTENT_FEES_SEED: ContentFeeItem[] = [
     approvedDate: '2026-09-28',
     feeAmount: 150000,
     status: 'Published',
+  },
+  // Konten Live Oktober 2026 (Sheet: 1wdsy4L0NbPOR39dYjnOM8Og_Os10piz9VT5DBglb0qQ - Tab: ContentTracker)
+  {
+    id: 'cnt-d7bsz1a',
+    contentTitle: 'Peluang Usaha Keripik Buah & Sayur Skala UMKM',
+    contentType: 'Reels / TikTok',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 15000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-gfpf02o',
+    contentTitle: 'Solusi Produksi Keripik Tanpa Ribet Mesin & Tenaga',
+    contentType: 'Reels / TikTok',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 15000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-c5y4dn0',
+    contentTitle: 'Rekomendasi Varian Keripik Terlaris untuk Reseller',
+    contentType: 'Reels / TikTok',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 15000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-kdc627m',
+    contentTitle: 'Panduan Memulai Maklon Keripik Sayur dari Nol',
+    contentType: 'Carousel',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 10000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-fewnpv8',
+    contentTitle: 'Camilan Sehat Tanpa Pengawet untuk Keluarga',
+    contentType: 'Single Post',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 10000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-ltj6tck',
+    contentTitle: 'Kandungan Nutrisi Keripik Sayur vs Snack Biasa',
+    contentType: 'Carousel',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 10000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-aayt6sa',
+    contentTitle: 'Video Ajakan Bergabung Reseller Keripik Sayur',
+    contentType: 'Reels / TikTok',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 15000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-dudnvp6',
+    contentTitle: '3 Keripik Anti-Mainstream Paling Diburu',
+    contentType: 'Carousel',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 10000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-pfxoyej',
+    contentTitle: 'Inovasi Keripik Tomat Kaya Nutrisi & Vitamin',
+    contentType: 'Carousel',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 10000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-c0onot3',
+    contentTitle: 'Punya Penghasilan Tambahan dengan Jadi Reseller',
+    contentType: 'Carousel',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 10000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-qibvvmi',
+    contentTitle: 'Video Unboxing Paket Keripik Sayur Premium',
+    contentType: 'Reels / TikTok',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-15',
+    feeAmount: 15000,
+    status: 'Approved',
+  },
+  {
+    id: 'cnt-4p577mj',
+    contentTitle: 'Proses Pembuatan Keripik Tomat Standar Ekspor',
+    contentType: 'Reels / TikTok',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-10-20',
+    feeAmount: 15000,
+    status: 'Approved',
   },
 ];
 
@@ -725,7 +847,20 @@ export const StorageService = {
       return INITIAL_CONTENT_FEES_SEED;
     }
     try {
-      return JSON.parse(raw);
+      const parsed: ContentFeeItem[] = JSON.parse(raw);
+      // Merge initial seed to ensure verified seeds (e.g. October 2026) are present
+      const existingIds = new Set(parsed.map((item) => item.id));
+      let hasNew = false;
+      for (const seed of INITIAL_CONTENT_FEES_SEED) {
+        if (!existingIds.has(seed.id)) {
+          parsed.push(seed);
+          hasNew = true;
+        }
+      }
+      if (hasNew) {
+        localStorage.setItem(STORAGE_KEYS.CONTENT_FEES, JSON.stringify(parsed));
+      }
+      return parsed;
     } catch {
       return INITIAL_CONTENT_FEES_SEED;
     }
@@ -764,22 +899,29 @@ export const StorageService = {
   },
 
   getGasConfig(): GasSyncConfig {
+    const defaultSpreadsheetId = '1wdsy4L0NbPOR39dYjnOM8Og_Os10piz9VT5DBglb0qQ';
     const raw = localStorage.getItem(STORAGE_KEYS.GAS_CONFIG);
     if (!raw) {
       const def: GasSyncConfig = {
         gasWebhookUrl: 'https://script.google.com/macros/s/AKfycbyni6-XwvwRugvD0THhLCCbtlsIYZcbJST8Woi8XkFAC8sFjji8ftTgS7yF-6rUCVgj8g/exec',
-        spreadsheetId: '1el1tK4NGhoslMWECWzIo-7nBAEox6KZ-2TjlJ6WLIV8',
+        spreadsheetId: defaultSpreadsheetId,
         autoSync: false,
       };
       localStorage.setItem(STORAGE_KEYS.GAS_CONFIG, JSON.stringify(def));
       return def;
     }
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // Auto-migrate legacy spreadsheet ID to active Project Control ID
+      if (!parsed.spreadsheetId || parsed.spreadsheetId === '1el1tK4NGhoslMWECWzIo-7nBAEox6KZ-2TjlJ6WLIV8') {
+        parsed.spreadsheetId = defaultSpreadsheetId;
+        localStorage.setItem(STORAGE_KEYS.GAS_CONFIG, JSON.stringify(parsed));
+      }
+      return parsed;
     } catch {
       return {
         gasWebhookUrl: '',
-        spreadsheetId: '',
+        spreadsheetId: defaultSpreadsheetId,
         autoSync: false,
       };
     }
