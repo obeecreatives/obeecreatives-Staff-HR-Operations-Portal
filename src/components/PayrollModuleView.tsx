@@ -742,16 +742,16 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
       {/* Payroll Records List */}
       <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-lg">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm min-w-[980px]">
+          <table className="w-full text-left text-sm min-w-[1150px]">
             <thead className="bg-slate-950 text-slate-300 uppercase tracking-wider text-xs border-b border-slate-800">
               <tr>
-                <th className="py-4 px-4 font-bold">Nama Staf</th>
-                <th className="py-4 px-4 font-bold">Periode Penggajian</th>
-                <th className="py-4 px-4 font-bold text-center">Kehadiran (Hadir / Izin)</th>
-                <th className="py-4 px-4 font-bold text-right">Gaji Pokok + Tunj.</th>
-                <th className="py-4 px-4 font-bold text-right">Fee Konten</th>
-                <th className="py-4 px-4 font-bold text-right">Gaji Bersih</th>
-                <th className="py-4 px-4 font-bold text-center">Status</th>
+                <th className="py-4 px-4 font-bold min-w-[170px]">Nama Staf</th>
+                <th className="py-4 px-4 font-bold min-w-[180px]">Periode Penggajian</th>
+                <th className="py-4 px-4 font-bold text-center whitespace-nowrap min-w-[200px]">Kehadiran (Hadir / Izin)</th>
+                <th className="py-4 px-4 font-bold text-right min-w-[140px]">Gaji Pokok + Tunj.</th>
+                <th className="py-4 px-4 font-bold text-right min-w-[120px]">Fee Konten</th>
+                <th className="py-4 px-4 font-bold text-right min-w-[140px]">Gaji Bersih</th>
+                <th className="py-4 px-4 font-bold text-center min-w-[110px]">Status</th>
                 <th className="py-4 px-4 font-bold text-center min-w-[280px]">Aksi &amp; Slip</th>
               </tr>
             </thead>
@@ -780,14 +780,18 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
                       </div>
                     </td>
 
-                    <td className="py-3.5 px-4 text-center font-mono tabular-nums text-sm">
-                      <span className="text-emerald-400 font-bold bg-emerald-950/80 px-2.5 py-1 rounded border border-emerald-800">
-                        {payroll.daysPresent} Hadir
-                      </span>
-                      <span className="text-slate-500 mx-1.5">&middot;</span>
-                      <span className="text-amber-400 font-bold bg-amber-950/80 px-2.5 py-1 rounded border border-amber-800">
-                        {payroll.daysAbsent} Izin
-                      </span>
+                    <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                      <div className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        <span className="inline-flex items-center gap-1 text-xs font-mono font-bold text-emerald-400 bg-emerald-950/80 px-2.5 py-1 rounded-md border border-emerald-800/80 shadow-xs whitespace-nowrap">
+                          <span>{payroll.daysPresent}</span>
+                          <span className="text-[11px] font-sans font-semibold">Hadir</span>
+                        </span>
+                        <span className="text-slate-600 font-bold">&middot;</span>
+                        <span className="inline-flex items-center gap-1 text-xs font-mono font-bold text-amber-400 bg-amber-950/80 px-2.5 py-1 rounded-md border border-amber-800/80 shadow-xs whitespace-nowrap">
+                          <span>{payroll.daysAbsent}</span>
+                          <span className="text-[11px] font-sans font-semibold">Izin</span>
+                        </span>
+                      </div>
                     </td>
 
                     <td className="py-3.5 px-4 text-right font-mono text-sm tabular-nums text-slate-200 font-semibold">
