@@ -111,7 +111,16 @@ export default function App() {
   };
 
   const handleSavePayroll = (record: PayrollRecord) => {
-    const list = [record, ...payrollList];
+    const exists = payrollList.some((p) => p.id === record.id);
+    const list = exists
+      ? payrollList.map((p) => (p.id === record.id ? record : p))
+      : [record, ...payrollList];
+    setPayrollList(list);
+    StorageService.savePayroll(list);
+  };
+
+  const handleDeletePayroll = (id: string) => {
+    const list = payrollList.filter((p) => p.id !== id);
     setPayrollList(list);
     StorageService.savePayroll(list);
   };
@@ -326,6 +335,7 @@ export default function App() {
               currentUser={currentUser}
               gasConfig={gasConfig}
               onSavePayroll={handleSavePayroll}
+              onDeletePayroll={handleDeletePayroll}
               onUpdatePayrollStatus={handleUpdatePayrollStatus}
               expensesList={expensesList}
               onSaveExpense={handleSaveExpense}

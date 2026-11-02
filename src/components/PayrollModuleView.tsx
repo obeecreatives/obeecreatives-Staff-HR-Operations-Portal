@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   Receipt,
   FileSpreadsheet,
+  Pencil,
 } from 'lucide-react';
 import { formatRupiah, formatPhoneForWhatsApp } from '../utils/geo';
 import { exportPayrollReport } from '../utils/exportExcel';
@@ -70,6 +71,7 @@ export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
   const [selectedStaffFilter, setSelectedStaffFilter] = useState('ALL');
   const [subTab, setSubTab] = useState<'payroll' | 'expenses'>('payroll');
   const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [editingPayroll, setEditingPayroll] = useState<PayrollRecord | null>(null);
   const [printPayroll, setPrintPayroll] = useState<{ payroll: PayrollRecord; staff: StaffUser } | null>(null);
 
   // WhatsApp Share Modal State
@@ -403,8 +405,89 @@ export const PayrollModuleView: React.FC<PayrollModuleViewProps> = ({
     }
   };
 
+  const handleOpenEdit = (payroll: PayrollRecord) => {
+    setEditingPayroll(payroll);
+    setTargetStaffId(payroll.staffId);
+    setPeriodStart(payroll.periodStart);
+    setPeriodEnd(payroll.periodEnd);
+    setWorkDaysStandard(payroll.workDaysStandard || 20);
+    setDaysPresentInput(payroll.daysPresent);
+    setDaysAbsentInput(payroll.daysAbsent);
+    setOvertime(payroll.overtime || 0);
+    setBpjsKetenagakerjaan(payroll.deductions?.bpjsKetenagakerjaan || 0);
+    setBpjsKesehatan(payroll.deductions?.bpjsKesehatan || 0);
+    setPremi(payroll.deductions?.premi || 0);
+    setTaxPph21(payroll.deductions?.taxPph21 || 0);
+    setLoanInstallment(payroll.deductions?.loanInstallment || 0);
+    setNotes(payroll.notes || '');
+    setPulledFees(
+      (payroll.contentFees || []).map((f) => ({
+        label: f.label,
+        rate: f.rate,
+        qty: f.qty,
+        subtotal: f.subtotal,
+        contentIds: f.contentIds || [],
+        isProjectControl: !!f.isProjectControl,
+      }))
+    );
+    setPeriodNotice(`Mode Perbaikan (Edit): Menyesuaikan slip gaji ${payroll.staffName} (${payroll.id}). Gaji pokok & tunjangan tersimpan otomatis.`);
+    setShowAddManualComp(false);
+    setShowGenerateModal(true);
+  };
+
+  const handleDeletePayrollItem = (payroll: PayrollRecord) => {
+    const isLunas = payroll.paymentStatus === 'Lunas';
+    const confirmMsg = isLunas
+      ? `Slip gaji ${payroll.staffName} (${payroll.id}) sudah berstatus LUNAS.\n\nApakah Anda yakin tetap ingin menghapusnya? Data yang dihapus tidak dapat dikembalikan.`
+      : `Apakah Anda yakin ingin menghapus draft slip gaji ${payroll.staffName} (${payroll.id}) periode ${payroll.periodStart} s/d ${payroll.periodEnd}?\n\nData yang dihapus tidak dapat dikembalikan.`;
+
+    if (confirm(confirmMsg)) {
+      if (onDeletePayroll) {
+        onDeletePayroll(payroll.id);
+      }
+    }
+  };
+
   const handleSaveNewPayroll = () => {
     if (!targetStaff) return;
+
+    if (editingPayroll) {
+      const updatedRec: PayrollRecord = {
+        ...editingPayroll,
+        staffId: targetStaff.id,
+        staffName: targetStaff.name,
+        periodStart: periodStart,
+        periodEnd: periodEnd,
+        workDaysStandard: workDaysStandard,
+        daysPresent: daysPresent,
+        daysAbsent: daysAbsent,
+        baseSalaryMonthly: baseSalaryMonthly,
+        allowanceMonthly: allowanceMonthly,
+        baseSalaryCalculated: baseSalaryCalculated,
+        allowanceCalculated: allowanceCalculated,
+        contentFees: pulledFees,
+        totalContentFee: totalContentFee,
+        overtime: overtime,
+        grossSalary: grossSalary,
+        deductions: {
+          bpjsKetenagakerjaan: bpjsKetenagakerjaan,
+          bpjsKesehatan: bpjsKesehatan,
+          premi: premi,
+          taxPph21: taxPph21,
+          loanInstallment: loanInstallment,
+        },
+        totalDeduction: totalDeduction,
+        netSalary: netSalary,
+        notes: notes,
+      };
+
+      onSavePayroll(updatedRec);
+      setEditingPayroll(null);
+      setShowGenerateModal(false);
+      setPulledFees([]);
+      setPullMsg('');
+      return;
+    }
 
     const newRec: PayrollRecord = {
       id: 'PAY-' + Date.now(),
@@ -562,6 +645,7 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
             <button
               type="button"
               onClick={() => {
+                setEditingPayroll(null);
                 const staff = staffList.find((s) => s.id === 'STF-1785295519572') || staffList[0];
                 const sId = staff?.id || defaultStaffId;
                 setTargetStaffId(sId);
@@ -668,7 +752,7 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
                 <th className="py-4 px-4 font-bold text-right">Fee Konten</th>
                 <th className="py-4 px-4 font-bold text-right">Gaji Bersih</th>
                 <th className="py-4 px-4 font-bold text-center">Status</th>
-                <th className="py-4 px-4 font-bold text-center">Aksi &amp; Slip</th>
+                <th className="py-4 px-4 font-bold text-center min-w-[280px]">Aksi &amp; Slip</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 text-slate-200">
@@ -741,15 +825,15 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
                     </td>
 
                     <td className="py-3.5 px-4 text-center">
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
                         {/* Tombol Cetak PDF A4 */}
                         <button
                           type="button"
                           onClick={() => setPrintPayroll({ payroll, staff: staff as StaffUser })}
-                          className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded text-xs font-semibold transition-colors border border-slate-700 shadow-xs"
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-100 rounded text-xs font-semibold transition-colors border border-slate-700 shadow-xs"
                           title="Pratinjau & Cetak Slip Gaji A4"
                         >
-                          <Printer className="w-4 h-4 text-[#E30000]" />
+                          <Printer className="w-3.5 h-3.5 text-[#E30000]" />
                           <span>Slip Gaji</span>
                         </button>
 
@@ -757,11 +841,33 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
                         <button
                           type="button"
                           onClick={() => setWaModalPayroll({ payroll, staff: staff as StaffUser })}
-                          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 rounded text-xs font-semibold transition-colors shadow-xs"
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-700 text-emerald-300 rounded text-xs font-semibold transition-colors shadow-xs"
                           title="Kirim Notifikasi Slip ke WA"
                         >
                           <Share2 className="w-3.5 h-3.5 text-emerald-400" />
                           <span>WA</span>
+                        </button>
+
+                        {/* Tombol Edit / Perbaiki */}
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(payroll)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-700 text-amber-300 rounded text-xs font-semibold transition-colors shadow-xs"
+                          title="Perbaiki & Edit Rincian Slip Gaji Ini"
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Edit</span>
+                        </button>
+
+                        {/* Tombol Hapus */}
+                        <button
+                          type="button"
+                          onClick={() => handleDeletePayrollItem(payroll)}
+                          className="flex items-center gap-1 px-2 py-1.5 bg-red-950/80 hover:bg-red-900 border border-red-700 text-red-300 rounded text-xs font-semibold transition-colors shadow-xs"
+                          title="Hapus Rekap Slip Gaji Ini"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          <span>Hapus</span>
                         </button>
                       </div>
                     </td>
@@ -791,19 +897,24 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
                 </div>
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold text-white flex items-center gap-2">
-                    <span>Buat Rekap Slip Gaji Baru</span>
+                    <span>{editingPayroll ? 'Edit & Perbaiki Slip Gaji' : 'Buat Rekap Slip Gaji Baru'}</span>
                     <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                      Formula Resmi v8/v11
+                      {editingPayroll ? `ID: ${editingPayroll.id}` : 'Formula Resmi v8/v11'}
                     </span>
                   </h3>
                   <div className="text-xs text-slate-400 mt-0.5">
-                    Gaji Pokok &amp; Tunjangan terkunci otomatis dari profil Direktori Staf &middot; Integrasi Fee Konten Project Control &amp; Presensi GPS
+                    {editingPayroll
+                      ? 'Perbaiki kesalahan input kehadiran, penambahan lembur, fee konten, atau potongan karyawan'
+                      : 'Gaji Pokok & Tunjangan terkunci otomatis dari profil Direktori Staf · Integrasi Fee Konten Project Control & Presensi GPS'}
                   </div>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setShowGenerateModal(false)}
+                onClick={() => {
+                  setShowGenerateModal(false);
+                  setEditingPayroll(null);
+                }}
                 className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800 transition-colors"
                 title="Tutup dialog"
               >
@@ -1349,7 +1460,10 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
             <div className="p-4 sm:p-5 border-t border-slate-800 flex items-center justify-end gap-3 shrink-0 bg-slate-950">
               <button
                 type="button"
-                onClick={() => setShowGenerateModal(false)}
+                onClick={() => {
+                  setShowGenerateModal(false);
+                  setEditingPayroll(null);
+                }}
                 className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg font-bold text-sm transition-colors"
               >
                 Batal
@@ -1360,7 +1474,7 @@ _Diterbitkan secara resmi oleh Manajemen & Finance obeecreatives._`;
                 className="px-6 py-2.5 bg-[#E30000] hover:bg-red-700 text-white font-bold rounded-lg text-sm shadow-md transition-colors flex items-center gap-2"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Simpan &amp; Kunci Slip Gaji</span>
+                <span>{editingPayroll ? 'Simpan Perubahan Slip Gaji' : 'Simpan & Kunci Slip Gaji'}</span>
               </button>
             </div>
           </div>
