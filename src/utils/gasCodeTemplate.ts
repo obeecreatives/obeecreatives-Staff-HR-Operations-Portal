@@ -117,30 +117,53 @@ function doGet(e) {
     return handleHeadlessApi_(e);
   }
 
-  // [2] JALUR WEB APP LAMA (HTML SERVICE)
-  ensureSheetExists_();
-  ensureWorkloadSheetExists_();
-  ensureAttendanceSheetExists_();
-  ensurePayrollSheetExists_();
-
-  const email = getUserEmail_();
-  const role = getUserRole_(email);
-
-  if (!role) {
-    const tpl = HtmlService.createTemplateFromFile('AccessDenied');
-    tpl.email = email || '(tidak terdeteksi)';
-    return tpl.evaluate()
-      .setTitle('Akses Ditolak - Database Staff obeecreatives')
-      .addMetaTag('viewport', 'width=device-width, initial-scale=1');
+  // Jika dibuka langsung di browser tanpa parameter action:
+  // Cek jika ada template HTML lama (untuk mode Container-Bound dengan Index.html)
+  try {
+    const email = getUserEmail_();
+    const role = getUserRole_(email);
+    if (role) {
+      const tpl = HtmlService.createTemplateFromFile('Index');
+      tpl.role = role;
+      tpl.email = email;
+      return tpl.evaluate()
+        .setTitle('Database Staff - obeecreatives')
+        .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    }
+  } catch (htmlErr) {
+    // Mode Standalone: tidak ada file Index.html, lanjut ke output status JSON
   }
 
-  const tpl = HtmlService.createTemplateFromFile('Index');
-  tpl.role = role;
-  tpl.email = email;
-  return tpl.evaluate()
-    .setTitle('Database Staff - obeecreatives')
-    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
-    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  // Respon status aktif API (sangat membantu verifikasi saat link /exec dibuka di browser)
+  let sheetNameFound = '';
+  let sheetAccessStatus = 'OK';
+  try {
+    const ss = getTargetSpreadsheet_();
+    sheetNameFound = ss ? ss.getName() : 'Tidak terdeteksi';
+  } catch (sheetErr) {
+    sheetAccessStatus = 'Error: ' + sheetErr.toString();
+  }
+
+  return createJsonResponse_({
+    status: 'active',
+    success: true,
+    service: 'CONTENTS TRACKER PRO - API & DATABASE STAFF',
+    message: 'Headless REST API Gateway obeecreatives aktif dan berjalan normal.',
+    connectedSpreadsheetId: PROJECT_CONTROL_SPREADSHEET_ID,
+    connectedSpreadsheetName: sheetNameFound,
+    sheetAccessStatus: sheetAccessStatus,
+    timestamp: new Date().toISOString(),
+    endpoints: [
+      '?action=ping',
+      '?action=getStaffList',
+      '?action=getContentList',
+      '?action=getPendingFees&staffName=...&startDate=...&endDate=...',
+      '?action=getWorkloadList',
+      '?action=getAttendanceList',
+      '?action=getPayrollList'
+    ]
+  });
 }
 
 function doPost(e) {
@@ -150,7 +173,7 @@ function doPost(e) {
 
     if (action === 'saveAttendance') {
       const record = postData.data;
-      const ss = SpreadsheetApp.getActiveSpreadsheet();
+      const ss = getTargetSpreadsheet_();
       let sheet = ss.getSheetByName(ATTENDANCE_SHEET_NAME);
       if (!sheet) sheet = ensureAttendanceSheetExists_();
 
@@ -197,6 +220,9 @@ function handleHeadlessApi_(e) {
         status: 'online',
         app: 'obeecreatives Staff & HR Operations Portal Gateway',
         version: 'v2.4-headless',
+        mode: (function() {
+          try { return SpreadsheetApp.getActiveSpreadsheet() ? 'container-bound' : 'standalone'; } catch (e) { return 'standalone'; }
+        })(),
         timestamp: new Date().toISOString()
       });
     }
@@ -245,9 +271,18 @@ function handleHeadlessApi_(e) {
         return createJsonResponse_({ success: false, message: 'Parameter staffName, startDate, endDate wajib diisi.' });
       }
 
-      const pcSs = SpreadsheetApp.openById(PROJECT_CONTROL_SPREADSHEET_ID);
-      const contentSheet = pcSs.getSheetByName(PC_CONTENT_SHEET_NAME);
-      const feeLogSheet = pcSs.getSheetByName(PC_FEELOG_SHEET_NAME);
+      let pcSs;
+      try {
+        pcSs = getTargetSpreadsheet_();
+      } catch (e) {
+        pcSs = SpreadsheetApp.getActiveSpreadsheet();
+      }
+      const contentSheet = pcSs ? pcSs.getSheetByName(PC_CONTENT_SHEET_NAME) : null;
+      const feeLogSheet = pcSs ? pcSs.getSheetByName(PC_FEELOG_SHEET_NAME) : null;
+
+      if (!contentSheet) {
+        return createJsonResponse_({ success: false, message: 'Tab ' + PC_CONTENT_SHEET_NAME + ' tidak ditemukan di spreadsheet.' });
+      }
 
       const usedMap = {};
       if (feeLogSheet && feeLogSheet.getLastRow() > 1) {
@@ -337,10 +372,21 @@ function requireAdmin_() {
   }
 }
 
-// ==================== SHEET HELPERS ====================
+// ==================== SHEET HELPERS (STANDALONE & CONTAINER-BOUND) ====================
+
+function getTargetSpreadsheet_() {
+  try {
+    const active = SpreadsheetApp.getActiveSpreadsheet();
+    if (active) return active;
+  } catch (err) {}
+  if (PROJECT_CONTROL_SPREADSHEET_ID && PROJECT_CONTROL_SPREADSHEET_ID !== 'ISI_DENGAN_ID_SPREADSHEET_PROJECT_CONTROL_ANDA') {
+    return SpreadsheetApp.openById(PROJECT_CONTROL_SPREADSHEET_ID);
+  }
+  throw new Error('Spreadsheet target tidak ditemukan. Pastikan PROJECT_CONTROL_SPREADSHEET_ID terisi.');
+}
 
 function ensureSheetExists_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getTargetSpreadsheet_();
   let sheet = ss.getSheetByName(SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
@@ -356,7 +402,7 @@ function getSheet_() {
 }
 
 function ensureWorkloadSheetExists_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getTargetSpreadsheet_();
   let sheet = ss.getSheetByName(WORKLOAD_SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(WORKLOAD_SHEET_NAME);
@@ -372,7 +418,7 @@ function getWorkloadSheet_() {
 }
 
 function ensureAttendanceSheetExists_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getTargetSpreadsheet_();
   let sheet = ss.getSheetByName(ATTENDANCE_SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(ATTENDANCE_SHEET_NAME);
@@ -401,7 +447,7 @@ function getAttendanceSheet_() {
 }
 
 function ensurePayrollSheetExists_() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getTargetSpreadsheet_();
   let sheet = ss.getSheetByName(PAYROLL_SHEET_NAME);
   if (!sheet) {
     sheet = ss.insertSheet(PAYROLL_SHEET_NAME);
@@ -905,7 +951,11 @@ function setupAutoAttendanceTrigger_() {
     .everyDays(1)
     .create();
 
-  SpreadsheetApp.getUi().alert('Trigger Absensi Otomatis berhasil diatur (07:00 pagi tiap hari kerja).');
+  try {
+    SpreadsheetApp.getUi().alert('Trigger Absensi Otomatis berhasil diatur (07:00 pagi tiap hari kerja).');
+  } catch (e) {
+    Logger.log('Trigger Absensi Otomatis berhasil diatur (07:00 pagi tiap hari kerja).');
+  }
 }
 
 // ==================== PAYROLL HELPERS ====================
@@ -1002,14 +1052,46 @@ function previewPayrollCalc(staffId, periodeAwal, periodeAkhir) {
 }
 
 function onOpen() {
-  SpreadsheetApp.getUi()
-    .createMenu('Database Staff')
-    .addItem('Setup Sheet Staff', 'ensureSheetExists_')
-    .addItem('Setup Sheet Workload', 'ensureWorkloadSheetExists_')
-    .addItem('Setup Sheet Attendance', 'ensureAttendanceSheetExists_')
-    .addItem('Setup Sheet Payroll', 'ensurePayrollSheetExists_')
-    .addSeparator()
-    .addItem('⏰ Setup Trigger Absensi Otomatis', 'setupAutoAttendanceTrigger_')
-    .addToUi();
+  try {
+    const ui = SpreadsheetApp.getUi();
+    if (ui) {
+      ui.createMenu('Database Staff')
+        .addItem('Setup Sheet Staff', 'ensureSheetExists_')
+        .addItem('Setup Sheet Workload', 'ensureWorkloadSheetExists_')
+        .addItem('Setup Sheet Attendance', 'ensureAttendanceSheetExists_')
+        .addItem('Setup Sheet Payroll', 'ensurePayrollSheetExists_')
+        .addSeparator()
+        .addItem('⏰ Setup Trigger Absensi Otomatis', 'setupAutoAttendanceTrigger_')
+        .addToUi();
+    }
+  } catch (err) {
+    // Standalone script tidak memiliki antarmuka menu spreadsheet langsung
+  }
+}
+
+/**
+ * ============================================================================
+ * FUNGSI UJI / RUN PERTAMA KALI (UNTUK STANDALONE SCRIPT MAUPUN CONTAINER-BOUND)
+ * ============================================================================
+ * PILIH FUNGSI INI DI DROPDOWN EDITOR LALU KLIK "JALANKAN / RUN".
+ * Fungsi ini bertugas memicu popup perizinan (Authorization Required) Google
+ * agar akun Anda mengizinkan skrip mengakses Spreadsheet target.
+ */
+function testConnection() {
+  const ss = getTargetSpreadsheet_();
+  Logger.log('✅ 1. Berhasil membuka Spreadsheet: "' + ss.getName() + '" (ID: ' + ss.getId() + ')');
+
+  const staffSheet = getSheet_();
+  Logger.log('✅ 2. Tab Staff siap. Total baris: ' + staffSheet.getLastRow());
+
+  const ctSheet = ss.getSheetByName(PC_CONTENT_SHEET_NAME);
+  if (ctSheet) {
+    Logger.log('✅ 3. Tab ' + PC_CONTENT_SHEET_NAME + ' terdeteksi! Total baris konten: ' + ctSheet.getLastRow());
+  } else {
+    Logger.log('⚠️ 3. Tab ' + PC_CONTENT_SHEET_NAME + ' belum ditemukan di spreadsheet ini.');
+  }
+
+  Logger.log('🎉 SEMUA IZIN OTORISASI BERHASIL DIBERIKAN! Anda sekarang siap Deploy New Deployment.');
+  return 'Koneksi & Otorisasi Berhasil!';
 }
 `;

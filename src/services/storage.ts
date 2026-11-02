@@ -900,10 +900,11 @@ export const StorageService = {
 
   getGasConfig(): GasSyncConfig {
     const defaultSpreadsheetId = '1wdsy4L0NbPOR39dYjnOM8Og_Os10piz9VT5DBglb0qQ';
+    const defaultWebhookUrl = 'https://script.google.com/macros/s/AKfycbzLzc0-TiWtK2KCB3hBGP6nbUbdMTGYNpQg_s8eHfwPTxlUjV7t6XVaw0yR1mf7jATP/exec';
     const raw = localStorage.getItem(STORAGE_KEYS.GAS_CONFIG);
     if (!raw) {
       const def: GasSyncConfig = {
-        gasWebhookUrl: 'https://script.google.com/macros/s/AKfycbyni6-XwvwRugvD0THhLCCbtlsIYZcbJST8Woi8XkFAC8sFjji8ftTgS7yF-6rUCVgj8g/exec',
+        gasWebhookUrl: defaultWebhookUrl,
         spreadsheetId: defaultSpreadsheetId,
         autoSync: false,
       };
@@ -915,12 +916,15 @@ export const StorageService = {
       // Auto-migrate legacy spreadsheet ID to active Project Control ID
       if (!parsed.spreadsheetId || parsed.spreadsheetId === '1el1tK4NGhoslMWECWzIo-7nBAEox6KZ-2TjlJ6WLIV8') {
         parsed.spreadsheetId = defaultSpreadsheetId;
-        localStorage.setItem(STORAGE_KEYS.GAS_CONFIG, JSON.stringify(parsed));
       }
+      if (!parsed.gasWebhookUrl || parsed.gasWebhookUrl.includes('AKfycbyni6-XwvwRugvD0THhLCCbtlsIYZcbJST8Woi8XkFAC8sFjji8ftTgS7yF')) {
+        parsed.gasWebhookUrl = defaultWebhookUrl;
+      }
+      localStorage.setItem(STORAGE_KEYS.GAS_CONFIG, JSON.stringify(parsed));
       return parsed;
     } catch {
       return {
-        gasWebhookUrl: '',
+        gasWebhookUrl: defaultWebhookUrl,
         spreadsheetId: defaultSpreadsheetId,
         autoSync: false,
       };
