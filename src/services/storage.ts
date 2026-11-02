@@ -217,57 +217,77 @@ export const INITIAL_STAFF_SEED: StaffUser[] = [
   },
 ];
 
-// Seed Fee Konten dari Project Control
+// Seed Fee Konten Asli Terverifikasi dari Project Control (Tab ContentTracker - ID: 1wdsy4L0NbPOR39dYjnOM8Og_Os10piz9VT5DBglb0qQ)
 export const INITIAL_CONTENT_FEES_SEED: ContentFeeItem[] = [
-  // Konten September 2026
+  // Konten September 2026 Asli Terverifikasi
   {
-    id: 'CNT-2026-0901',
-    contentTitle: 'Promo Reels Kopi Tepi Sawah - September Launch',
-    contentType: 'Reels Promo',
-    clientName: 'Kopi Tepi Sawah',
-    creatorName: 'Aldrien Andriansyah',
+    id: 'ca1fab60-5b1d-48cd-ae32-332ab45db401',
+    contentTitle: 'Review Keripik Kentang Renyah Gurih',
+    contentType: 'Reels / TikTok',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Adissa Rifdah Aulia',
     approvedDate: '2026-09-12',
-    feeAmount: 350000,
+    feeAmount: 15000,
     status: 'Published',
   },
   {
-    id: 'CNT-2026-0902',
-    contentTitle: 'Carousel Edukasi Skin Barrier Tips',
-    contentType: 'Feed Carousel',
-    clientName: 'Glow Botanic Skincare',
+    id: 'e293f98a-46c6-462c-a524-99372e748320',
+    contentTitle: 'Game Interaktif Mencocokkan Gambar Keripik',
+    contentType: 'Single Post',
+    clientName: 'KERIPIK SAYUR ID',
     creatorName: 'Adissa Rifdah Aulia',
     approvedDate: '2026-09-15',
-    feeAmount: 200000,
+    feeAmount: 10000,
     status: 'Published',
   },
   {
-    id: 'CNT-2026-0903',
-    contentTitle: 'Video Liputan Opening Outlet Sunset Road',
-    contentType: 'Video Liputan',
-    clientName: 'Ayam Bakar Taliwang Asli',
-    creatorName: 'Aldrien Andriansyah',
-    approvedDate: '2026-09-22',
-    feeAmount: 450000,
-    status: 'Scheduled',
+    id: 'aac82e38-18cc-4110-82d8-4691b48d2ccb',
+    contentTitle: 'Quotes Edukasi: Brand Kuat Berasal dari Produk Konsisten',
+    contentType: 'Single Post',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Adissa Rifdah Aulia',
+    approvedDate: '2026-09-18',
+    feeAmount: 10000,
+    status: 'Published',
   },
   {
-    id: 'CNT-2026-0904',
-    contentTitle: 'TikTok Storytelling Series: Weekend di Lombok',
-    contentType: 'TikTok Series',
-    clientName: 'Lombok Travel Guide',
-    creatorName: 'Adissa Rifdah Aulia',
-    approvedDate: '2026-09-25',
-    feeAmount: 250000,
+    id: '0a3bc4dc-8f7d-4b14-a2d5-e2ccb9a51503',
+    contentTitle: 'Rahasia Dibalik Proses Vacuum Frying Keripik Buah',
+    contentType: 'Carousel',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Aldrien Andriansyah',
+    approvedDate: '2026-09-23',
+    feeAmount: 10000,
+    status: 'Published',
+  },
+  {
+    id: '6872106a-8376-4ab6-a8e0-9ec942bda878',
+    contentTitle: 'Pentingnya Konsumsi Sayur & Camilan Bergizi untuk Keluarga',
+    contentType: 'Carousel',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Aldrien Andriansyah',
+    approvedDate: '2026-09-28',
+    feeAmount: 10000,
     status: 'Approved',
   },
   {
-    id: 'CNT-2026-0905',
-    contentTitle: 'Social Media Feed Banner Promo Gajian',
-    contentType: 'Feed Carousel',
-    clientName: 'Batu Creative Hub',
-    creatorName: 'Febrina Putri K',
+    id: '745f9cbe-e207-474f-9272-73b305beb5bc',
+    contentTitle: 'Single Post Interaktif: Kamu Tim Keripik Gurih atau Manis?',
+    contentType: 'Single Post',
+    clientName: 'KERIPIK SAYUR ID',
+    creatorName: 'Muhammad Labib Azka',
     approvedDate: '2026-09-28',
-    feeAmount: 150000,
+    feeAmount: 10000,
+    status: 'Published',
+  },
+  {
+    id: '458e5918-07e8-4047-918e-d56e856d77ff',
+    contentTitle: '5 Manfaat Konsumsi Pangan Lokal untuk Tubuh',
+    contentType: 'Carousel',
+    clientName: 'INOVASI PANGAN LESTARI',
+    creatorName: 'Muhammad Labib Azka',
+    approvedDate: '2026-09-08',
+    feeAmount: 10000,
     status: 'Published',
   },
   // Konten Live Oktober 2026 (Sheet: 1wdsy4L0NbPOR39dYjnOM8Og_Os10piz9VT5DBglb0qQ - Tab: ContentTracker)
@@ -610,23 +630,23 @@ export const INITIAL_PAYROLL_SEED: PayrollRecord[] = [
     allowanceCalculated: 270000,  // Rp 300.000 - (2 * Rp 15.000 potongan izin)
     contentFees: [
       {
-        label: 'Fee Konten - Feed Carousel (Glow Botanic Skincare)',
-        rate: 200000,
+        label: 'Fee Konten - Reels / TikTok (KERIPIK SAYUR ID)',
+        rate: 15000,
         qty: 1,
-        subtotal: 200000,
-        contentIds: ['CNT-2026-0902'],
+        subtotal: 15000,
+        contentIds: ['ca1fab60-5b1d-48cd-ae32-332ab45db401'],
         isProjectControl: true,
       },
       {
-        label: 'Fee Konten - TikTok Series (Lombok Travel Guide)',
-        rate: 250000,
-        qty: 1,
-        subtotal: 250000,
-        contentIds: ['CNT-2026-0904'],
+        label: 'Fee Konten - Single Post (KERIPIK SAYUR ID & INOVASI PANGAN LESTARI)',
+        rate: 10000,
+        qty: 2,
+        subtotal: 20000,
+        contentIds: ['e293f98a-46c6-462c-a524-99372e748320', 'aac82e38-18cc-4110-82d8-4691b48d2ccb'],
         isProjectControl: true,
       },
     ],
-    totalContentFee: 450000,
+    totalContentFee: 35000,
     overtime: 0,
     deductions: {
       bpjsKetenagakerjaan: 0,
@@ -636,11 +656,11 @@ export const INITIAL_PAYROLL_SEED: PayrollRecord[] = [
       loanInstallment: 0,
     },
     totalDeduction: 0,
-    grossSalary: 1620000,
-    netSalary: 1620000,
+    grossSalary: 1205000,
+    netSalary: 1205000,
     paymentStatus: 'Lunas',
     paymentDate: '2026-09-30',
-    notes: 'Gaji Pokok & Tunjangan Terkunci Direktori Staf & Tim. Presensi 20 Hari Hadir & 2 Hari Izin + Fee 2 Konten Project Control.',
+    notes: 'Slip Gaji September: Gaji Pokok & Tunjangan Terkunci Direktori Staf & Tim (Potong 2 Hari Izin Rp 130.000) + Fee 3 Konten Project Control.',
     createdAt: '2026-09-30T17:00:00.000Z',
   },
   {
@@ -658,23 +678,15 @@ export const INITIAL_PAYROLL_SEED: PayrollRecord[] = [
     allowanceCalculated: 200000,
     contentFees: [
       {
-        label: 'Fee Konten - Reels Promo (Kopi Tepi Sawah)',
-        rate: 350000,
-        qty: 1,
-        subtotal: 350000,
-        contentIds: ['CNT-2026-0901'],
-        isProjectControl: true,
-      },
-      {
-        label: 'Fee Konten - Video Liputan (Ayam Bakar Taliwang Asli)',
-        rate: 450000,
-        qty: 1,
-        subtotal: 450000,
-        contentIds: ['CNT-2026-0903'],
+        label: 'Fee Konten - Carousel (INOVASI PANGAN LESTARI & KERIPIK SAYUR ID)',
+        rate: 10000,
+        qty: 2,
+        subtotal: 20000,
+        contentIds: ['0a3bc4dc-8f7d-4b14-a2d5-e2ccb9a51503', '6872106a-8376-4ab6-a8e0-9ec942bda878'],
         isProjectControl: true,
       },
     ],
-    totalContentFee: 800000,
+    totalContentFee: 20000,
     overtime: 0,
     deductions: {
       bpjsKetenagakerjaan: 0,
@@ -684,16 +696,72 @@ export const INITIAL_PAYROLL_SEED: PayrollRecord[] = [
       loanInstallment: 0,
     },
     totalDeduction: 0,
-    grossSalary: 1800000,
-    netSalary: 1800000,
+    grossSalary: 1020000,
+    netSalary: 1020000,
     paymentStatus: 'Lunas',
     paymentDate: '2026-09-30',
-    notes: 'Gaji Pokok & Tunjangan Terkunci (Rp 1.000.000) + Fee 2 Konten Project Control (Rp 800.000).',
+    notes: 'Slip Gaji September: Gaji Pokok & Tunjangan Terkunci (Rp 1.000.000) + Fee 2 Konten Project Control (Rp 20.000).',
     createdAt: '2026-09-30T17:00:00.000Z',
+  },
+  {
+    id: 'PAY-2026-10-ADISSA',
+    staffId: 'STF-1785295519572',
+    staffName: 'Adissa Rifdah Aulia',
+    periodStart: '2026-10-01',
+    periodEnd: '2026-10-31',
+    workDaysStandard: 20,
+    daysPresent: 20,
+    daysAbsent: 0,
+    baseSalaryMonthly: 1000000,
+    allowanceMonthly: 300000,
+    baseSalaryCalculated: 1000000,
+    allowanceCalculated: 300000,
+    contentFees: [
+      {
+        label: 'Fee Konten - Reels / TikTok (INOVASI PANGAN LESTARI & KERIPIK SAYUR ID)',
+        rate: 15000,
+        qty: 5,
+        subtotal: 75000,
+        contentIds: ['cnt-d7bsz1a', 'cnt-gfpf02o', 'cnt-c5y4dn0', 'cnt-aayt6sa', 'cnt-qibvvmi'],
+        isProjectControl: true,
+      },
+      {
+        label: 'Fee Konten - Carousel (INOVASI PANGAN LESTARI & KERIPIK SAYUR ID)',
+        rate: 10000,
+        qty: 5,
+        subtotal: 50000,
+        contentIds: ['cnt-kdc627m', 'cnt-ltj6tck', 'cnt-dudnvp6', 'cnt-pfxoyej', 'cnt-c0onot3'],
+        isProjectControl: true,
+      },
+      {
+        label: 'Fee Konten - Single Post (KERIPIK SAYUR ID)',
+        rate: 10000,
+        qty: 1,
+        subtotal: 10000,
+        contentIds: ['cnt-fewnpv8'],
+        isProjectControl: true,
+      },
+    ],
+    totalContentFee: 135000,
+    overtime: 0,
+    deductions: {
+      bpjsKetenagakerjaan: 0,
+      bpjsKesehatan: 0,
+      premi: 0,
+      taxPph21: 0,
+      loanInstallment: 0,
+    },
+    totalDeduction: 0,
+    grossSalary: 1435000,
+    netSalary: 1435000,
+    paymentStatus: 'Belum',
+    paymentDate: undefined,
+    notes: 'Slip Gaji Oktober: Gaji Pokok & Tunjangan Terkunci Penuh (20 Hari Hadir Kerja & 1 Izin Sakit Surat Dokter Tanpa Potongan) + 11 Fee Konten Project Control (Rp 135.000).',
+    createdAt: '2026-10-31T17:00:00.000Z',
   },
 ];
 
-const CURRENT_STORAGE_VERSION = 'v7_0_october_attendance_verified';
+const CURRENT_STORAGE_VERSION = 'v8_0_clean_authentic_data_v9_aligned';
 
 // Helper Storage API
 export const INITIAL_LEAVES_SEED: LeaveRequest[] = [
@@ -790,41 +858,42 @@ export const INITIAL_EXPENSES_SEED: ExpenseClaim[] = [
     id: 'EXP-001',
     staffId: 'STF-1785303827045',
     staffName: 'Lalu Mahendra Ali Akbar',
-    title: 'Bensin & Tol Mobil Operasional Photoshoot Bromo',
+    title: 'BBM & Tol Mobil Operasional Produksi Konten Luar Studio Batu',
     category: 'Bensin & Transport Shoot',
-    amount: 350000,
-    date: '2026-09-20',
+    amount: 150000,
+    date: '2026-10-15',
     status: 'Approved',
-    notes: 'Kru 4 orang berangkat subuh via Tumpang',
+    notes: 'Kru 3 orang produksi footage on-site di Batu',
     approvedBy: 'Finance Management',
-    createdAt: '2026-09-20T20:00:00Z',
+    createdAt: '2026-10-15T20:00:00Z',
     isIncludedInPayroll: true,
   },
   {
     id: 'EXP-002',
     staffId: 'STF-1785295519572',
     staffName: 'Adissa Rifdah Aulia',
-    title: 'Tiket Lokasi Shoot Cafe & Resto Batu',
+    title: 'Sample Produk & Property Styling Foto Keripik',
     category: 'Tiket Lokasi / Izin Lokasi',
-    amount: 150000,
-    date: '2026-09-22',
+    amount: 75000,
+    date: '2026-10-14',
     status: 'Approved',
-    notes: 'Biaya izin commercial take video reels',
-    approvedBy: 'Lalu Mahendra',
-    createdAt: '2026-09-22T16:30:00Z',
+    notes: 'Pembelian prop piring keramik & alas foto produk',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
+    createdAt: '2026-10-14T16:30:00Z',
     isIncludedInPayroll: true,
   },
   {
     id: 'EXP-003',
-    staffId: 'STF-1785295519572',
-    staffName: 'Adissa Rifdah Aulia',
-    title: 'Konsumsi Kru Lapangan Sesi Konten',
+    staffId: 'STF-1785307520278',
+    staffName: 'Aldrien Andriansyah',
+    title: 'Konsumsi Kru Lapangan Liputan Klien Inovasi Pangan Lestari',
     category: 'Konsumsi Kru Lapangan',
-    amount: 95000,
-    date: '2026-09-28',
-    status: 'Pending',
-    notes: 'Makan siang 2 orang saat produksi reels klien',
-    createdAt: '2026-09-28T13:10:00Z',
+    amount: 65000,
+    date: '2026-10-15',
+    status: 'Approved',
+    notes: 'Makan siang kru lapangan saat take video produk',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
+    createdAt: '2026-10-15T13:10:00Z',
     isIncludedInPayroll: false,
   },
 ];
@@ -832,13 +901,13 @@ export const INITIAL_EXPENSES_SEED: ExpenseClaim[] = [
 export const INITIAL_PROJECTS_SEED: ProjectAssignment[] = [
   {
     id: 'PRJ-101',
-    clientName: 'Batu Eco Resto & Cafe',
-    projectName: 'Commercial Video & Menu Catalog Shoot',
+    clientName: 'INOVASI PANGAN LESTARI',
+    projectName: 'Commercial Video & Product Catalog Maklon Keripik',
     category: 'Commercial Shoot',
-    location: 'Jl. Oro-Oro Ombo No. 12, Kec. Batu',
+    location: 'Studio obeecreatives Kota Batu',
     shootDate: '2026-10-05',
-    callTime: '07:30 WIB',
-    status: 'Upcoming',
+    callTime: '08:30 WIB',
+    status: 'Completed',
     totalProjectFee: 3500000,
     crew: [
       {
@@ -862,16 +931,16 @@ export const INITIAL_PROJECTS_SEED: ProjectAssignment[] = [
       { id: 'eq-5', name: 'Wireless Mic DJI Mic 2 (Transmitter + Receiver)', checked: true },
       { id: 'eq-6', name: 'Tripod Carbon Fiber Sirui', checked: true },
     ],
-    notes: 'Brief klien: tone warna natural warm, video 9:16 untuk Reels dan video horizontal 16:9 untuk Display Cafe.',
+    notes: 'Brief klien: tone warna natural warm, video 9:16 untuk Reels dan video horizontal 16:9 untuk display katalog.',
     createdAt: '2026-09-29T10:00:00Z',
   },
   {
     id: 'PRJ-102',
-    clientName: 'Inovasi Pangan Lestari',
-    projectName: 'Social Media Monthly Carousel & Reels Retainer',
+    clientName: 'KERIPIK SAYUR ID',
+    projectName: 'Social Media Monthly Retainer Shoot & Video Unboxing',
     category: 'Social Media Retainer',
     location: 'Studio obeecreatives Kota Batu',
-    shootDate: '2026-10-02',
+    shootDate: '2026-10-15',
     callTime: '09:00 WIB',
     status: 'In Progress',
     totalProjectFee: 2800000,
@@ -883,8 +952,8 @@ export const INITIAL_PROJECTS_SEED: ProjectAssignment[] = [
         customFee: 300000,
       },
       {
-        staffId: 'STF-1785300550339',
-        staffName: 'Muhammad Labib Azka',
+        staffId: 'STF-1785307520278',
+        staffName: 'Aldrien Andriansyah',
         roleInProject: 'Editor',
         customFee: 200000,
       },
@@ -894,8 +963,8 @@ export const INITIAL_PROJECTS_SEED: ProjectAssignment[] = [
       { id: 'eq-12', name: 'Continuous LED Amaran 200d', checked: true },
       { id: 'eq-13', name: 'SD Card Sandisk Extreme Pro 128GB', checked: true },
     ],
-    notes: 'Konten batch 4 carousel edukasi pangan + 3 video reels tips.',
-    createdAt: '2026-09-28T09:00:00Z',
+    notes: 'Konten batch 5 carousel edukasi pangan + 3 video reels unboxing.',
+    createdAt: '2026-10-01T09:00:00Z',
   },
   {
     id: 'PRJ-103',
@@ -903,7 +972,7 @@ export const INITIAL_PROJECTS_SEED: ProjectAssignment[] = [
     projectName: 'Workshop Pelatihan Creative Content Creator',
     category: 'Event & Workshop',
     location: 'Graha Pancasila Balaikota Among Tani, Batu',
-    shootDate: '2026-10-15',
+    shootDate: '2026-10-20',
     callTime: '08:00 WIB',
     status: 'Upcoming',
     totalProjectFee: 5000000,
@@ -915,34 +984,32 @@ export const INITIAL_PROJECTS_SEED: ProjectAssignment[] = [
         customFee: 1000000,
       },
       {
-        staffId: 'STF-1785295519572',
-        staffName: 'Adissa Rifdah Aulia',
+        staffId: 'STF-1785374645853',
+        staffName: 'Vita Belfi',
         roleInProject: 'Project Coordinator',
         customFee: 500000,
       },
     ],
     equipmentList: [
-      { id: 'eq-21', name: 'Sony A7C II + 24-105mm F4 G', checked: false },
-      { id: 'eq-22', name: 'Presenter Clicker & HDMI Cable', checked: false },
-      { id: 'eq-23', name: 'Roll Banner & Handout Materi Peserta', checked: false },
+      { id: 'eq-21', name: 'Sony A7C II + 24-105mm F4 G', checked: true },
+      { id: 'eq-22', name: 'Presenter Clicker & HDMI Cable', checked: true },
+      { id: 'eq-23', name: 'Roll Banner & Handout Materi Peserta', checked: true },
     ],
-    notes: 'Pemateri utama: Mas Hendra. Sesi praktek video smartphone dihandle tim kreatif.',
-    createdAt: '2026-09-30T11:00:00Z',
+    notes: 'Pemateri utama: Mas Hendra. Sesi praktek video smartphone dihandle tim kreatif obeecreatives.',
+    createdAt: '2026-10-05T11:00:00Z',
   },
 ];
 
 export const StorageService = {
-  getStaff(): StaffUser[] {
+  ensureInitialized(): void {
     const version = localStorage.getItem(STORAGE_KEYS.VERSION);
     if (version !== CURRENT_STORAGE_VERSION) {
-      // Force refresh cache with exact verified sheet data
-      localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(INITIAL_STAFF_SEED));
-      localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(INITIAL_ATTENDANCE_SEED));
-      localStorage.setItem(STORAGE_KEYS.PAYROLL, JSON.stringify(INITIAL_PAYROLL_SEED));
-      localStorage.setItem(STORAGE_KEYS.VERSION, CURRENT_STORAGE_VERSION);
-      return INITIAL_STAFF_SEED;
+      this.resetToSeed();
     }
+  },
 
+  getStaff(): StaffUser[] {
+    this.ensureInitialized();
     const raw = localStorage.getItem(STORAGE_KEYS.STAFF);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(INITIAL_STAFF_SEED));
@@ -961,16 +1028,7 @@ export const StorageService = {
   },
 
   getAttendance(): AttendanceRecord[] {
-    const version = localStorage.getItem(STORAGE_KEYS.VERSION);
-    if (version !== CURRENT_STORAGE_VERSION) {
-      localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(INITIAL_ATTENDANCE_SEED));
-      localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(INITIAL_STAFF_SEED));
-      localStorage.setItem(STORAGE_KEYS.PAYROLL, JSON.stringify(INITIAL_PAYROLL_SEED));
-      localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(INITIAL_LEAVES_SEED));
-      localStorage.setItem(STORAGE_KEYS.VERSION, CURRENT_STORAGE_VERSION);
-      return INITIAL_ATTENDANCE_SEED;
-    }
-
+    this.ensureInitialized();
     const raw = localStorage.getItem(STORAGE_KEYS.ATTENDANCE);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(INITIAL_ATTENDANCE_SEED));
@@ -1011,6 +1069,7 @@ export const StorageService = {
   },
 
   getContentFees(): ContentFeeItem[] {
+    this.ensureInitialized();
     const raw = localStorage.getItem(STORAGE_KEYS.CONTENT_FEES);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.CONTENT_FEES, JSON.stringify(INITIAL_CONTENT_FEES_SEED));
@@ -1041,12 +1100,7 @@ export const StorageService = {
   },
 
   getPayroll(): PayrollRecord[] {
-    const version = localStorage.getItem(STORAGE_KEYS.VERSION);
-    if (version !== CURRENT_STORAGE_VERSION) {
-      localStorage.setItem(STORAGE_KEYS.PAYROLL, JSON.stringify(INITIAL_PAYROLL_SEED));
-      return INITIAL_PAYROLL_SEED;
-    }
-
+    this.ensureInitialized();
     const raw = localStorage.getItem(STORAGE_KEYS.PAYROLL);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.PAYROLL, JSON.stringify(INITIAL_PAYROLL_SEED));
@@ -1114,6 +1168,7 @@ export const StorageService = {
   },
 
   getLeaves(): LeaveRequest[] {
+    this.ensureInitialized();
     const raw = localStorage.getItem(STORAGE_KEYS.LEAVES);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(INITIAL_LEAVES_SEED));
@@ -1143,6 +1198,7 @@ export const StorageService = {
   },
 
   getExpenses(): ExpenseClaim[] {
+    this.ensureInitialized();
     const raw = localStorage.getItem(STORAGE_KEYS.EXPENSES);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(INITIAL_EXPENSES_SEED));
@@ -1161,6 +1217,7 @@ export const StorageService = {
   },
 
   getProjects(): ProjectAssignment[] {
+    this.ensureInitialized();
     const raw = localStorage.getItem(STORAGE_KEYS.PROJECTS);
     if (!raw) {
       localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(INITIAL_PROJECTS_SEED));

@@ -16,6 +16,8 @@ import {
   ChevronDown,
   ChevronUp,
   Sparkles,
+  Zap,
+  X,
 } from 'lucide-react';
 import {
   STUDIO_COORDINATES,
@@ -192,6 +194,57 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
     onUpdateAttendance(updated);
   };
 
+  // v9 SOP: Absensi Otomatis Harian Manual Trigger
+  const [showTriggerModal, setShowTriggerModal] = useState(false);
+
+  const handleGenerateTodayAttendance = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay(); // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+    const workingDays = [1, 2, 3, 4, 6]; // Senin, Selasa, Rabu, Kamis, Sabtu (SOP v9 obeecreatives)
+    const todayIso = today.toISOString().slice(0, 10);
+
+    if (!workingDays.includes(dayOfWeek)) {
+      const dayName = dayOfWeek === 5 ? 'Jumat' : 'Minggu';
+      alert(`Hari ini (${dayName}) bukan hari kerja terjadwal obeecreatives sesuai SOP v9. Absensi otomatis harian dilewati.`);
+      return;
+    }
+
+    const activeStaff = staffList.filter((s) => s.status !== 'Nonaktif');
+    let createdCount = 0;
+    let skippedCount = 0;
+
+    activeStaff.forEach((staff) => {
+      const alreadyHas = attendanceList.some((a) => a.staffId === staff.id && a.date === todayIso);
+      if (alreadyHas) {
+        skippedCount++;
+      } else {
+        const newRecord: AttendanceRecord = {
+          id: `ATT-AUTO-${staff.id.slice(-4)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          staffId: staff.id,
+          staffName: staff.name,
+          date: todayIso,
+          workMode: staff.workMode || 'WFO',
+          status: 'Hadir',
+          checkInTime: '09:00',
+          checkOutTime: '17:00',
+          notes: 'Otomatis - hari kerja terjadwal (SOP v9)',
+          locationName: 'Studio obeecreatives Kota Batu',
+          distanceMeters: 15,
+          verifiedByGeo: true,
+        };
+        onAddAttendance(newRecord);
+        createdCount++;
+      }
+    });
+
+    alert(
+      `⚡ Hasil Eksekusi Absensi Otomatis Harian (SOP v9 obeecreatives):\n\n` +
+      `✓ Berhasil Dibuat : ${createdCount} staf aktif (Status: Hadir, 09:00 - 17:00)\n` +
+      `ℹ Dilewati (Sudah Ada) : ${skippedCount} staf\n\n` +
+      `Seluruh staf aktif tercatat Hadir secara default. Jika ada staf yang Izin/Sakit/Cuti, Admin cukup mengedit status baris tersebut tanpa membuat ulang.`
+    );
+  };
+
   // Filtered logs
   const filteredAttendance = attendanceList.filter((a) => {
     const matchMonth = a.date.startsWith(selectedMonth);
@@ -213,7 +266,7 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Sub-tab Navigation Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-2.5 shadow-sm">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-xl p-2.5 shadow-sm">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -247,14 +300,37 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
           </button>
         </div>
 
-        <button
-          type="button"
-          onClick={() => exportAttendanceReport(attendanceList, staffList, selectedMonth)}
-          className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors self-start sm:self-auto"
-        >
-          <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-          <span>Export Rekap Absensi (.xlsx)</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Tombol v9: Generate Absensi Otomatis Hari Ini */}
+          <button
+            type="button"
+            onClick={handleGenerateTodayAttendance}
+            title="SOP v9: Otomatis mengisi Hadir untuk seluruh staf aktif hari ini (Senin-Kamis & Sabtu). Jumat/Minggu dilewati."
+            className="px-3.5 py-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+          >
+            <Zap className="w-3.5 h-3.5 text-slate-950 fill-current" />
+            <span>⚡ Generate Absensi Hari Ini (v9)</span>
+          </button>
+
+          {/* Panduan Setup Trigger Cloud 07:00 Pagi */}
+          <button
+            type="button"
+            onClick={() => setShowTriggerModal(true)}
+            className="px-3 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-semibold text-slate-300 flex items-center gap-1.5 transition-colors"
+          >
+            <Clock className="w-3.5 h-3.5 text-sky-400" />
+            <span>Setup Trigger 07:00</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => exportAttendanceReport(attendanceList, staffList, selectedMonth)}
+            className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Export Rekap (.xlsx)</span>
+          </button>
+        </div>
       </div>
 
       {subTab === 'leaves' ? (
@@ -364,7 +440,7 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="cth: Editing video promo reels Kopi Tepi Sawah"
+                placeholder="cth: Editing video reels Keripik Sayur ID di Studio Batu"
                 className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs text-slate-100 focus:outline-none focus:border-[#E30000]"
               />
             </div>
@@ -793,6 +869,117 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
         )}
       </div>
         </>
+      )}
+
+      {/* Modal Panduan & Kontrol Setup Trigger Absensi Otomatis (SOP v9) */}
+      {showTriggerModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-750 rounded-2xl max-w-xl w-full p-6 shadow-2xl text-slate-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4 mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center justify-center text-lg font-bold">
+                  ⏰
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white">
+                    Setup Trigger Absensi Otomatis Harian (SOP v9)
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Eksekusi mandiri di Google Apps Script jam 07:00 WIB tanpa perlu buka aplikasi
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowTriggerModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Aturan SOP v9 */}
+            <div className="space-y-4 text-xs">
+              <div className="bg-slate-950 border border-slate-800 rounded-xl p-3.5 space-y-2">
+                <div className="font-bold text-amber-400 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <span>Ketentuan Otomatisasi Absensi (SOP v9 obeecreatives)</span>
+                </div>
+                <ul className="space-y-1.5 text-slate-300 list-disc list-inside">
+                  <li>
+                    <span className="font-semibold text-white">Hari Kerja Resmi:</span> Senin, Selasa, Rabu, Kamis, dan Sabtu (5 hari).
+                  </li>
+                  <li>
+                    <span className="font-semibold text-white">Hari Libur Terjadwal:</span> Jumat &amp; Minggu dilewati otomatis (tidak dibuatkan absensi).
+                  </li>
+                  <li>
+                    <span className="font-semibold text-white">Status &amp; Jam Standar:</span> Hadir (09:00 - 17:00) untuk seluruh staf berstatus 'Aktif'.
+                  </li>
+                  <li>
+                    <span className="font-semibold text-white">Proteksi Anti-Duplikasi:</span> Jika staf sudah memiliki absensi di tanggal tersebut, sistem otomatis skip.
+                  </li>
+                  <li>
+                    <span className="font-semibold text-white">Fleksibilitas Cuti/Izin:</span> Jika staf sakit atau izin, Admin cukup edit status pada baris tanggal bersangkutan.
+                  </li>
+                </ul>
+              </div>
+
+              {/* 2 Opsi Setup */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-slate-200">Cara Mengaktifkan Trigger Jam 07:00:</h4>
+
+                <div className="p-3 bg-slate-850 border border-slate-750 rounded-xl space-y-2">
+                  <div className="font-semibold text-emerald-400">
+                    Opsi 1: Lewat Menu Google Sheets (Paling Mudah)
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-300">
+                    <li>Buka spreadsheet Database Staff di Google Sheets.</li>
+                    <li>Klik menu custom di atas: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-amber-300 font-mono">Database Staff</code>.</li>
+                    <li>Pilih menu: <code className="bg-slate-900 px-1.5 py-0.5 rounded text-amber-300 font-mono">⏰ Setup Trigger Absensi Otomatis</code>.</li>
+                    <li>Klik Izinkan (Authorize) jika Google meminta persetujuan. Selesai!</li>
+                  </ol>
+                </div>
+
+                <div className="p-3 bg-slate-850 border border-slate-750 rounded-xl space-y-2">
+                  <div className="font-semibold text-sky-400">
+                    Opsi 2: Dari Apps Script Triggers
+                  </div>
+                  <ol className="list-decimal list-inside space-y-1 text-slate-300">
+                    <li>Buka editor Apps Script, klik ikon jam ⏰ (Triggers / Pemicu) di sidebar kiri.</li>
+                    <li>Klik tombol <span className="font-semibold text-white">+ Tambahkan Pemicu (+ Add Trigger)</span> di kanan bawah.</li>
+                    <li>Fungsi: pilih <code className="bg-slate-900 px-1 py-0.5 rounded text-amber-300 font-mono">dailyAutoAttendanceTrigger</code>.</li>
+                    <li>Sumber acara: <span className="text-white font-medium">Berbasis waktu (Time-driven)</span>.</li>
+                    <li>Jenis pemicu: <span className="text-white font-medium">Timer hari (Day timer)</span>.</li>
+                    <li>Waktu hari: <span className="text-white font-medium">06.00 hingga 07.00 pagi</span>.</li>
+                    <li>Klik <span className="font-semibold text-emerald-400">Simpan</span>.</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Tombol Aksi Langsung */}
+              <div className="pt-2 flex flex-col sm:flex-row gap-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTriggerModal(false);
+                    handleGenerateTodayAttendance();
+                  }}
+                  className="flex-1 py-2.5 px-4 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                >
+                  <Zap className="w-4 h-4 fill-current" />
+                  <span>⚡ Jalankan Manual Hari Ini Sekarang</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowTriggerModal(false)}
+                  className="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-xs transition-colors"
+                >
+                  Tutup Panduan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -439,7 +439,7 @@ _Mohon hadir tepat waktu di Studio Kota Batu / Lokasi. Salam Kreatif obeecreativ
                     required
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Contoh: Batu Eco Resto"
+                    placeholder="Contoh: Inovasi Pangan Lestari / Keripik Sayur ID"
                     className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded text-xs text-slate-100 focus:outline-none focus:border-[#E30000]"
                   />
                 </div>
