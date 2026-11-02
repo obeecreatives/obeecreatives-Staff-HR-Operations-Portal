@@ -214,12 +214,12 @@ function handleHeadlessApi_(e) {
     const params = e.parameter || {};
     const action = params.action;
 
-    // A. Handshake (Uji Koneksi)
-    if (action === 'handshake') {
+    // A. Handshake & Ping (Uji Koneksi)
+    if (action === 'handshake' || action === 'ping') {
       return createJsonResponse_({
         status: 'online',
         app: 'obeecreatives Staff & HR Operations Portal Gateway',
-        version: 'v2.4-headless',
+        version: 'v2.5-headless-unified',
         mode: (function() {
           try { return SpreadsheetApp.getActiveSpreadsheet() ? 'container-bound' : 'standalone'; } catch (e) { return 'standalone'; }
         })(),
@@ -394,6 +394,78 @@ function handleHeadlessApi_(e) {
         obj.Tanggal = dateToSafeString_(obj.Tanggal);
         obj.JamMasuk = timeToSafeString_(obj.JamMasuk);
         obj.JamKeluar = timeToSafeString_(obj.JamKeluar);
+        obj.CreatedAt = dateToSafeString_(obj.CreatedAt);
+        obj.UpdatedAt = dateToSafeString_(obj.UpdatedAt);
+        list.push(obj);
+      }
+      return createJsonResponse_({ success: true, count: list.length, data: list });
+    }
+
+    // E. Ambil Daftar Konten dari Tab ContentTracker
+    if (action === 'getContentList') {
+      const ss = getTargetSpreadsheet_();
+      const cSheet = ss.getSheetByName(PC_CONTENT_SHEET_NAME);
+      if (!cSheet || cSheet.getLastRow() < 2) {
+        return createJsonResponse_({ success: true, count: 0, data: [] });
+      }
+
+      const cData = cSheet.getDataRange().getValues();
+      const headers = cData[0];
+      const list = [];
+      for (let i = 1; i < cData.length; i++) {
+        const r = cData[i];
+        if (!r[0]) continue;
+        const item = {};
+        headers.forEach(function(h, idx) {
+          const key = String(h).trim();
+          let val = r[idx];
+          if (val instanceof Date) val = dateToSafeString_(val);
+          item[key] = (val !== null && val !== undefined) ? val : '';
+        });
+        list.push(item);
+      }
+      return createJsonResponse_({ success: true, count: list.length, data: list });
+    }
+
+    // F. Ambil Daftar Workload / Tugas
+    if (action === 'getWorkloadList') {
+      const wSheet = getWorkloadSheet_();
+      const wLastRow = wSheet.getLastRow();
+      if (wLastRow < 2) {
+        return createJsonResponse_({ success: true, count: 0, data: [] });
+      }
+
+      const wValues = wSheet.getRange(2, 1, wLastRow - 1, WORKLOAD_COLUMNS.length).getValues();
+      const list = [];
+      for (let i = 0; i < wValues.length; i++) {
+        const row = wValues[i];
+        if (!row[0]) continue;
+        const obj = rowToObjectGeneric_(row, WORKLOAD_COLUMNS);
+        obj.Deadline = dateToSafeString_(obj.Deadline);
+        obj.CreatedAt = dateToSafeString_(obj.CreatedAt);
+        obj.UpdatedAt = dateToSafeString_(obj.UpdatedAt);
+        list.push(obj);
+      }
+      return createJsonResponse_({ success: true, count: list.length, data: list });
+    }
+
+    // G. Ambil Daftar Arsip Payroll
+    if (action === 'getPayrollList') {
+      const pSheet = getPayrollSheet_();
+      const pLastRow = pSheet.getLastRow();
+      if (pLastRow < 2) {
+        return createJsonResponse_({ success: true, count: 0, data: [] });
+      }
+
+      const pValues = pSheet.getRange(2, 1, pLastRow - 1, PAYROLL_COLUMNS.length).getValues();
+      const list = [];
+      for (let i = 0; i < pValues.length; i++) {
+        const row = pValues[i];
+        if (!row[0]) continue;
+        const obj = rowToObjectGeneric_(row, PAYROLL_COLUMNS);
+        obj.PeriodeAwal = dateToSafeString_(obj.PeriodeAwal);
+        obj.PeriodeAkhir = dateToSafeString_(obj.PeriodeAkhir);
+        obj.TanggalBayar = dateToSafeString_(obj.TanggalBayar);
         obj.CreatedAt = dateToSafeString_(obj.CreatedAt);
         obj.UpdatedAt = dateToSafeString_(obj.UpdatedAt);
         list.push(obj);
