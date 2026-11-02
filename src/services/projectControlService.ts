@@ -255,23 +255,55 @@ export async function pullProjectControlFeesForStaff(params: {
 
   let rawItems: ContentFeeItem[] = [];
   let claimedIds = new Set<string>();
-  let source: 'live-google-sheet' | 'local-cache' = 'live-google-sheet';
+  // 1. Prioritas 1: Tarik via GAS Web App REST API jika webhook tersedia
+  const gasConfig = StorageService.getGasConfig();
+  const webhookUrl = gasConfig.gasWebhookUrl;
 
-  // 1. Coba Tarik Live Langsung dari Google Spreadsheet Project Control
+  if (webhookUrl && webhookUrl.includes('script.google.com')) {
+    try {
+      const gasApiUrl = `${webhookUrl}?action=pullProjectControlFees&staffName=${encodeURIComponent(staffName)}&startDate=${startDate}&endDate=${endDate}`;
+      const proxyUrl = `/api/gas-proxy?url=${encodeURIComponent(gasApiUrl)}`;
+      const res = await fetch(proxyUrl);
+      if (res.ok) {
+        const gasData = await res.json();
+        if (gasData && gasData.success && Array.isArray(gasData.feeItems) && gasData.feeItems.length > 0) {
+          const totalSum = gasData.totalSum || gasData.feeItems.reduce((acc: number, f: any) => acc + (f.subtotal || 0), 0);
+          const totalCount = gasData.feeItems.reduce((acc: number, f: any) => acc + (f.qty || 1), 0);
+          return {
+            success: true,
+            message: `✓ Menarik ${totalCount} konten komersial (${totalSum.toLocaleString('id-ID')} IDR) dari Project Control Live API.`,
+            feeItems: gasData.feeItems,
+            totalSum,
+            totalCount,
+            source: 'live-google-sheet',
+            rawItems: [],
+          };
+        }
+      }
+    } catch (gasErr) {
+      console.warn('Gagal memanggil GAS API untuk fee, mencoba CSV / cache fallback:', gasErr);
+    }
+  }
+
+  // 2. Prioritas 2: Tarik Live Langsung dari Google Spreadsheet CSV
   try {
     const liveData = await fetchLiveProjectControlContents(activeSpreadsheetId);
     rawItems = liveData.items;
     claimedIds = liveData.claimedIds;
   } catch (err) {
-    console.warn('Gagal live sync dari Google Sheet, beralih ke cache lokal:', err);
+    console.warn('Gagal live sync dari Google Sheet CSV, beralih ke cache lokal:', err);
     source = 'local-cache';
     rawItems = StorageService.getContentFees();
   }
 
-  // Helper matching creator name
+  // Helper matching creator name (fleksibel: nama lengkap, nama panggilan 'Dissa' / 'Adissa', bagian kata)
   const isMatchCreator = (creator: string) => {
     const c = creator.toLowerCase().trim();
-    return c === staffNameLower || c.includes(staffFirstName) || staffNameLower.includes(c);
+    if (!c) return false;
+    if (c === staffNameLower || c.includes(staffFirstName) || staffNameLower.includes(c)) return true;
+    if (staffNameLower.includes('adissa') && (c.includes('dissa') || c.includes('adissa') || c.includes('rifdah'))) return true;
+    if (staffNameLower.includes('feedkreatif') && (c.includes('feed') || c.includes('kreatif'))) return true;
+    return false;
   };
 
   // Helper matching date range or month

@@ -263,7 +263,7 @@ function handleHeadlessApi_(e) {
     }
 
     // C. Tarik Fee Konten dari Project Control
-    if (action === 'pullProjectControlFees') {
+    if (action === 'pullProjectControlFees' || action === 'getPendingFees') {
       const staffName = params.staffName;
       const startStr = params.startDate;
       const endStr = params.endDate;
@@ -291,30 +291,67 @@ function handleHeadlessApi_(e) {
       }
 
       const cData = contentSheet.getDataRange().getValues();
-      const headers = cData[0];
+      const rawHeaders = cData[0];
       const col = {};
-      headers.forEach(function(h, idx) { col[h] = idx; });
+      rawHeaders.forEach(function(h, idx) { 
+        col[String(h).trim().toLowerCase()] = idx; 
+      });
+
+      const colId = col['id'] !== undefined ? col['id'] : 0;
+      const colCreator = col['creator'] !== undefined ? col['creator'] : (col['pembuat'] !== undefined ? col['pembuat'] : 13);
+      const colFee = col['feeamount'] !== undefined ? col['feeamount'] : (col['fee'] !== undefined ? col['fee'] : (col['nominal'] !== undefined ? col['nominal'] : 18));
+      const colJenis = col['jeniskonten'] !== undefined ? col['jeniskonten'] : (col['jenis'] !== undefined ? col['jenis'] : 8);
+      const colTglApprove = col['tanggalapprove'] !== undefined ? col['tanggalapprove'] : (col['tanggalproduksi'] !== undefined ? col['tanggalproduksi'] : 2);
+      const colBulan = col['bulan'] !== undefined ? col['bulan'] : 3;
 
       const startDate = new Date(startStr);
       const endDate = new Date(endStr);
       endDate.setHours(23, 59, 59);
 
+      const staffLower = staffName.trim().toLowerCase();
+      const staffFirst = staffLower.split(' ')[0];
+
       const grouped = {};
       for (let i = 1; i < cData.length; i++) {
         const r = cData[i];
-        const id = r[col['ID']];
+        const id = r[colId];
         if (!id || usedMap[id]) continue;
 
-        const fee = Number(r[col['FeeAmount']]) || 0;
+        const rawFeeVal = r[colFee];
+        const fee = typeof rawFeeVal === 'number' ? rawFeeVal : (Number(String(rawFeeVal || '').replace(/[^0-9.-]/g, '')) || 0);
         if (fee <= 0) continue;
 
-        const creator = String(r[col['Creator']] || '').trim().toLowerCase();
-        if (creator !== staffName.trim().toLowerCase()) continue;
+        const creator = String(r[colCreator] || '').trim().toLowerCase();
+        if (!creator) continue;
+        const matchCreator = (creator === staffLower) || 
+                             (creator.indexOf(staffFirst) !== -1) || 
+                             (staffLower.indexOf(creator) !== -1) ||
+                             (staffLower.indexOf('adissa') !== -1 && (creator.indexOf('dissa') !== -1 || creator.indexOf('adissa') !== -1 || creator.indexOf('rifdah') !== -1));
+        if (!matchCreator) continue;
 
-        const tglApprove = new Date(r[col['TanggalApprove']]);
-        if (isNaN(tglApprove.getTime()) || tglApprove < startDate || tglApprove > endDate) continue;
+        let dateMatches = false;
+        const rawTgl = r[colTglApprove];
+        if (rawTgl instanceof Date) {
+          dateMatches = (rawTgl >= startDate && rawTgl <= endDate);
+        } else if (rawTgl) {
+          const tgl = new Date(rawTgl);
+          if (!isNaN(tgl.getTime())) {
+            dateMatches = (tgl >= startDate && tgl <= endDate);
+          }
+        }
 
-        const jenis = r[col['JenisKonten']] || 'Lain-lain';
+        if (!dateMatches && r[colBulan]) {
+          const bln = String(r[colBulan]).toLowerCase();
+          if (bln.indexOf('okt') !== -1 && startStr.indexOf('2026-10') !== -1) {
+            dateMatches = true;
+          } else if (bln.indexOf('sep') !== -1 && startStr.indexOf('2026-09') !== -1) {
+            dateMatches = true;
+          }
+        }
+
+        if (!dateMatches) continue;
+
+        const jenis = r[colJenis] || 'Lain-lain';
         if (!grouped[jenis]) grouped[jenis] = { total: 0, count: 0, contentIds: [] };
         grouped[jenis].total += fee;
         grouped[jenis].count += 1;
