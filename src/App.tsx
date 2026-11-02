@@ -302,6 +302,7 @@ export default function App() {
               onSaveLeave={handleSaveLeave}
               onUpdateLeave={handleUpdateLeave}
               onDeleteLeave={handleDeleteLeave}
+              onSyncToAttendance={handleSyncLeaveToAttendance}
             />
           )}
 

@@ -377,6 +377,30 @@ function handleHeadlessApi_(e) {
       return createJsonResponse_({ success: true, feeItems: feeItems, totalSum: totalSum });
     }
 
+    // D. Ambil Log Presensi (Attendance)
+    if (action === 'getAttendanceList') {
+      const aSheet = getAttendanceSheet_();
+      const aLastRow = aSheet.getLastRow();
+      if (aLastRow < 2) {
+        return createJsonResponse_({ success: true, count: 0, data: [] });
+      }
+
+      const aValues = aSheet.getRange(2, 1, aLastRow - 1, ATTENDANCE_COLUMNS.length).getValues();
+      const list = [];
+      for (let i = 0; i < aValues.length; i++) {
+        const row = aValues[i];
+        if (!row[0] && !row[1]) continue;
+        const obj = rowToObjectGeneric_(row, ATTENDANCE_COLUMNS);
+        obj.Tanggal = dateToSafeString_(obj.Tanggal);
+        obj.JamMasuk = timeToSafeString_(obj.JamMasuk);
+        obj.JamKeluar = timeToSafeString_(obj.JamKeluar);
+        obj.CreatedAt = dateToSafeString_(obj.CreatedAt);
+        obj.UpdatedAt = dateToSafeString_(obj.UpdatedAt);
+        list.push(obj);
+      }
+      return createJsonResponse_({ success: true, count: list.length, data: list });
+    }
+
     return createJsonResponse_({ success: false, message: 'Action tidak dikenal' });
   } catch (err) {
     return createJsonResponse_({ success: false, error: err.toString() });

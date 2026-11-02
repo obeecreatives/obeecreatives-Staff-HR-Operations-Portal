@@ -7,6 +7,7 @@ import {
   LeaveRequest,
   ExpenseClaim,
   ProjectAssignment,
+  WorkMode,
 } from '../types';
 
 const STORAGE_KEYS = {
@@ -494,7 +495,103 @@ const generateSeptemberAttendance = (): AttendanceRecord[] => {
   return records;
 };
 
-export const INITIAL_ATTENDANCE_SEED: AttendanceRecord[] = generateSeptemberAttendance();
+// Seed Kehadiran Oktober 2026: Standar 20 Hari Kerja (Senin-Kamis & Sabtu)
+const generateOctoberAttendance = (): AttendanceRecord[] => {
+  const records: AttendanceRecord[] = [];
+  const adissaId = 'STF-1785295519572';
+  const adissaName = 'Adissa Rifdah Aulia';
+
+  // Jadwal Kerja Resmi Oktober 2026 (Senin-Kamis & Sabtu - Standar 20 Hari Kerja)
+  const octoberWorkingDays = [
+    '2026-10-01', '2026-10-03', '2026-10-05', '2026-10-06', '2026-10-07',
+    '2026-10-08', '2026-10-10', '2026-10-12', '2026-10-13', '2026-10-14',
+    '2026-10-15', '2026-10-17', '2026-10-19', '2026-10-20', '2026-10-22',
+    '2026-10-24', '2026-10-26', '2026-10-27', '2026-10-28', '2026-10-29',
+    '2026-10-31'
+  ];
+
+  // Adissa Rifdah Aulia: 20 Hari Hadir Penuh di Oktober 2026 (WFO + 1 Tugas Luar On-Site)
+  octoberWorkingDays.forEach((date, i) => {
+    const isOutTask = date === '2026-10-15'; // 15 Okt: Tugas Luar Liputan Klien
+    records.push({
+      id: `ATT-ADISSA-OKT-${i + 1}`,
+      staffId: adissaId,
+      staffName: adissaName,
+      date: date,
+      workMode: isOutTask ? 'On-Site' : 'WFO',
+      status: 'Hadir',
+      checkInTime: isOutTask ? '08:30' : '08:52',
+      checkOutTime: isOutTask ? '17:35' : '17:08',
+      latitude: isOutTask ? -7.8680 : -7.8712,
+      longitude: isOutTask ? 112.5290 : 112.5271,
+      distanceMeters: isOutTask ? 450 : 16,
+      locationName: isOutTask ? 'Lokasi Klien Inovasi Pangan Lestari (On-Site Batu)' : 'Studio obeecreatives Kota Batu',
+      notes: isOutTask ? 'Tugas luar liputan produksi konten retainer' : 'Presensi WFO terminal GPS studio',
+      verifiedByGeo: true,
+    });
+  });
+
+  // 1 Hari Izin Sakit Adissa (21 Oktober 2026 - dengan surat dokter -> TIDAK memotong gaji)
+  records.push({
+    id: 'ATT-ADISSA-OKT-SAKIT',
+    staffId: adissaId,
+    staffName: adissaName,
+    date: '2026-10-21',
+    workMode: 'WFO',
+    status: 'Sakit',
+    notes: 'Izin Sakit: Demam & radang tenggorokan (surat dokter klinik terlampir - hak sakit bergaji penuh)',
+    verifiedByGeo: false,
+  });
+
+  // Presensi Staf Lain di Oktober 2026
+  const otherStaff = [
+    { id: 'STF-1785307520278', name: 'Aldrien Andriansyah', mode: 'On-Site' as WorkMode },
+    { id: 'STF-1785374645853', name: 'Vita Belfi', mode: 'WFO' as WorkMode },
+    { id: 'STF-1785303827045', name: 'Lalu Mahendra Ali Akbar', mode: 'WFO' as WorkMode },
+    { id: 'STF-1790218381197', name: 'Febrina Putri K', mode: 'WFO' as WorkMode },
+  ];
+
+  const sampleDates = ['2026-10-01', '2026-10-05', '2026-10-10', '2026-10-15', '2026-10-20', '2026-10-28', '2026-10-31'];
+  sampleDates.forEach((date, idx) => {
+    otherStaff.forEach((s) => {
+      records.push({
+        id: `ATT-${s.id.slice(-4)}-OKT-${idx + 1}`,
+        staffId: s.id,
+        staffName: s.name,
+        date: date,
+        workMode: s.mode,
+        status: 'Hadir',
+        checkInTime: '08:55',
+        checkOutTime: '17:15',
+        latitude: -7.8712,
+        longitude: 112.5271,
+        distanceMeters: 20,
+        locationName: 'Studio obeecreatives Kota Batu',
+        notes: 'Hari kerja reguler Oktober',
+        verifiedByGeo: true,
+      });
+    });
+  });
+
+  // 1 Hari Cuti Tahunan Aldrien Andriansyah (09 Oktober 2026 -> TIDAK memotong gaji)
+  records.push({
+    id: 'ATT-ALDRIEN-OKT-CUTI',
+    staffId: 'STF-1785307520278',
+    staffName: 'Aldrien Andriansyah',
+    date: '2026-10-09',
+    workMode: 'WFO',
+    status: 'Cuti',
+    notes: 'Cuti Tahunan: Acara keluarga (hak cuti tahunan disetujui)',
+    verifiedByGeo: false,
+  });
+
+  return records;
+};
+
+export const INITIAL_ATTENDANCE_SEED: AttendanceRecord[] = [
+  ...generateSeptemberAttendance(),
+  ...generateOctoberAttendance(),
+];
 
 // Seed Rekap Payroll Resmi September 2026 (Sesuai Log Resmi GAS & Project Control)
 export const INITIAL_PAYROLL_SEED: PayrollRecord[] = [
@@ -596,10 +693,11 @@ export const INITIAL_PAYROLL_SEED: PayrollRecord[] = [
   },
 ];
 
-const CURRENT_STORAGE_VERSION = 'v6_0_studio_kota_batu_verified';
+const CURRENT_STORAGE_VERSION = 'v7_0_october_attendance_verified';
 
 // Helper Storage API
 export const INITIAL_LEAVES_SEED: LeaveRequest[] = [
+  // September 2026
   {
     id: 'LEV-001',
     staffId: 'STF-1785295519572',
@@ -610,7 +708,7 @@ export const INITIAL_LEAVES_SEED: LeaveRequest[] = [
     totalDays: 1,
     reason: 'Sakit flu & demam, istirahat dokter 1 hari',
     status: 'Approved',
-    approvedBy: 'Lalu Mahendra',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
     approvalDate: '2026-09-18',
     createdAt: '2026-09-18T07:15:00Z',
   },
@@ -624,9 +722,66 @@ export const INITIAL_LEAVES_SEED: LeaveRequest[] = [
     totalDays: 1,
     reason: 'Liputan visual & asistensi workshop desain di Malang',
     status: 'Approved',
-    approvedBy: 'Lalu Mahendra',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
     approvalDate: '2026-09-23',
     createdAt: '2026-09-23T14:20:00Z',
+  },
+  // Oktober 2026 (Struktur Izin Resmi: Sakit, Cuti Tahunan, Tugas Luar, Lembur Shoot)
+  {
+    id: 'LEV-OKT-01',
+    staffId: 'STF-1785295519572',
+    staffName: 'Adissa Rifdah Aulia',
+    type: 'Tugas Luar Studio',
+    startDate: '2026-10-15',
+    endDate: '2026-10-15',
+    totalDays: 1,
+    reason: 'Liputan produksi konten retainer klien INOVASI PANGAN LESTARI & KERIPIK SAYUR ID',
+    status: 'Approved',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
+    approvalDate: '2026-10-14',
+    createdAt: '2026-10-14T11:00:00Z',
+  },
+  {
+    id: 'LEV-OKT-02',
+    staffId: 'STF-1785295519572',
+    staffName: 'Adissa Rifdah Aulia',
+    type: 'Izin Sakit',
+    startDate: '2026-10-21',
+    endDate: '2026-10-21',
+    totalDays: 1,
+    reason: 'Sakit demam & radang tenggorokan (surat dokter klinik terlampir - hak sakit bergaji penuh)',
+    status: 'Approved',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
+    approvalDate: '2026-10-21',
+    createdAt: '2026-10-21T07:30:00Z',
+  },
+  {
+    id: 'LEV-OKT-03',
+    staffId: 'STF-1785307520278',
+    staffName: 'Aldrien Andriansyah',
+    type: 'Cuti Tahunan',
+    startDate: '2026-10-09',
+    endDate: '2026-10-09',
+    totalDays: 1,
+    reason: 'Cuti Tahunan: Acara pernikahan keluarga di Surabaya',
+    status: 'Approved',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
+    approvalDate: '2026-10-07',
+    createdAt: '2026-10-07T09:15:00Z',
+  },
+  {
+    id: 'LEV-OKT-04',
+    staffId: 'STF-1785374645853',
+    staffName: 'Vita Belfi',
+    type: 'Lembur Shoot',
+    startDate: '2026-10-15',
+    endDate: '2026-10-15',
+    totalDays: 1,
+    reason: 'Supervisi lembur workshop creative content bersama Disparta Kota Batu',
+    status: 'Approved',
+    approvedBy: 'Lalu Mahendra Ali Akbar',
+    approvalDate: '2026-10-15',
+    createdAt: '2026-10-15T18:00:00Z',
   },
 ];
 
@@ -811,6 +966,7 @@ export const StorageService = {
       localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(INITIAL_ATTENDANCE_SEED));
       localStorage.setItem(STORAGE_KEYS.STAFF, JSON.stringify(INITIAL_STAFF_SEED));
       localStorage.setItem(STORAGE_KEYS.PAYROLL, JSON.stringify(INITIAL_PAYROLL_SEED));
+      localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(INITIAL_LEAVES_SEED));
       localStorage.setItem(STORAGE_KEYS.VERSION, CURRENT_STORAGE_VERSION);
       return INITIAL_ATTENDANCE_SEED;
     }
@@ -823,12 +979,26 @@ export const StorageService = {
     try {
       const parsed: AttendanceRecord[] = JSON.parse(raw);
       // Validasi wajib: Adissa Rifdah Aulia harus memiliki 20 hari hadir & 2 hari izin di September 2026
-      const adissaHadir = parsed.filter(
+      const adissaHadirSep = parsed.filter(
         (a) => a.staffId === 'STF-1785295519572' && a.status === 'Hadir' && a.date.startsWith('2026-09')
       ).length;
-      if (adissaHadir < 20) {
-        localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(INITIAL_ATTENDANCE_SEED));
-        return INITIAL_ATTENDANCE_SEED;
+
+      // Cek apakah data bulan Oktober 2026 sudah ada
+      const hasOctober = parsed.some((a) => a.date.startsWith('2026-10'));
+
+      if (adissaHadirSep < 20 || !hasOctober) {
+        // Gabungkan entri Oktober yang belum ada
+        const existingIds = new Set(parsed.map((a) => a.id));
+        let changed = false;
+        INITIAL_ATTENDANCE_SEED.forEach((seed) => {
+          if (!existingIds.has(seed.id)) {
+            parsed.push(seed);
+            changed = true;
+          }
+        });
+        if (changed || adissaHadirSep < 20) {
+          localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(parsed));
+        }
       }
       return parsed;
     } catch {
@@ -950,8 +1120,19 @@ export const StorageService = {
       return INITIAL_LEAVES_SEED;
     }
     try {
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : INITIAL_LEAVES_SEED;
+      const parsed: LeaveRequest[] = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return INITIAL_LEAVES_SEED;
+      const hasOctober = parsed.some((l) => l.startDate.startsWith('2026-10'));
+      if (!hasOctober) {
+        const existingIds = new Set(parsed.map((l) => l.id));
+        INITIAL_LEAVES_SEED.forEach((seed) => {
+          if (!existingIds.has(seed.id)) {
+            parsed.push(seed);
+          }
+        });
+        localStorage.setItem(STORAGE_KEYS.LEAVES, JSON.stringify(parsed));
+      }
+      return parsed;
     } catch {
       return INITIAL_LEAVES_SEED;
     }

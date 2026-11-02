@@ -12,6 +12,10 @@ import {
   Check,
   ShieldCheck,
   FileText,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
 } from 'lucide-react';
 import {
   STUDIO_COORDINATES,
@@ -33,6 +37,7 @@ interface GeoAttendanceViewProps {
   onSaveLeave?: (leave: LeaveRequest) => void;
   onUpdateLeave?: (leave: LeaveRequest) => void;
   onDeleteLeave?: (id: string) => void;
+  onSyncToAttendance?: (leave: LeaveRequest) => void;
 }
 
 export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
@@ -47,9 +52,11 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
   onSaveLeave,
   onUpdateLeave,
   onDeleteLeave,
+  onSyncToAttendance,
 }) => {
   const [subTab, setSubTab] = useState<'attendance' | 'leaves'>('attendance');
-  const [selectedMonth, setSelectedMonth] = useState<string>('2026-09');
+  const [selectedMonth, setSelectedMonth] = useState<string>('2026-10');
+  const [showStructureGuide, setShowStructureGuide] = useState<boolean>(true);
   const [selectedStaffFilter, setSelectedStaffFilter] = useState<string>('ALL');
 
   // Check-In Form State
@@ -258,6 +265,7 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
           onSaveLeave={onSaveLeave || (() => {})}
           onUpdateLeave={onUpdateLeave || (() => {})}
           onDeleteLeave={onDeleteLeave || (() => {})}
+          onSyncToAttendance={onSyncToAttendance}
         />
       ) : (
         <>
@@ -566,36 +574,155 @@ export const GeoAttendanceView: React.FC<GeoAttendanceViewProps> = ({
 
       {/* Attendance History Log Table */}
       <div className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
-        {/* Table Toolbar */}
-        <div className="p-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-[#E30000]" />
-            <h3 className="text-sm font-bold text-white">Log Riwayat Presensi & Lokasi</h3>
+        {/* Table Toolbar & Filter Presensi */}
+        <div className="p-4 border-b border-slate-800 space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-[#E30000]" />
+              <h3 className="text-sm font-bold text-white">Log Riwayat Presensi & Lokasi</h3>
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                {filteredAttendance.length} Entri Log
+              </span>
+            </div>
+
+            {/* Quick Month Switchers & Filters */}
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <div className="flex items-center bg-slate-950 p-1 rounded-lg border border-slate-800 gap-1">
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonth('2026-10')}
+                  className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors flex items-center gap-1 ${
+                    selectedMonth === '2026-10'
+                      ? 'bg-[#E30000] text-white shadow-xs'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Okt 2026 (Aktif)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedMonth('2026-09')}
+                  className={`px-2.5 py-1 rounded text-[11px] font-semibold transition-colors ${
+                    selectedMonth === '2026-09'
+                      ? 'bg-[#E30000] text-white shadow-xs'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <span>Sep 2026</span>
+                </button>
+              </div>
+
+              {/* Custom Month Picker */}
+              <input
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-[#E30000] text-xs font-mono"
+                title="Pilih Bulan & Tahun Kustom"
+              />
+
+              {/* Filter Staf */}
+              <select
+                value={selectedStaffFilter}
+                onChange={(e) => setSelectedStaffFilter(e.target.value)}
+                className="px-2.5 py-1 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-[#E30000] text-xs"
+              >
+                <option value="ALL">Semua Staf ({staffList.length})</option>
+                {staffList.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+
+              {/* Toggle Pedoman Struktur Izin */}
+              <button
+                type="button"
+                onClick={() => setShowStructureGuide(!showStructureGuide)}
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs flex items-center gap-1 transition-colors border border-slate-700"
+              >
+                <Info className="w-3.5 h-3.5 text-sky-400" />
+                <span>Struktur Izin & Aturan</span>
+                {showStructureGuide ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            {/* Filter Bulan */}
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-[#E30000]"
-            />
+          {/* Pedoman Struktur Izin & Aturan Pemotongan Payroll Resmi obeecreatives */}
+          {showStructureGuide && (
+            <div className="bg-slate-950/80 border border-slate-800 rounded-lg p-3 text-xs space-y-2 text-slate-300 animate-fadeIn">
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-100 uppercase tracking-wider text-[11px] flex items-center gap-1.5 text-amber-400">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Pedoman Struktur Izin, Cuti & Aturan Payroll Resmi (SOP obeecreatives)
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">Standar: 20 Hari Kerja / Bulan</span>
+              </div>
 
-            {/* Filter Staf */}
-            <select
-              value={selectedStaffFilter}
-              onChange={(e) => setSelectedStaffFilter(e.target.value)}
-              className="px-2.5 py-1.5 bg-slate-950 border border-slate-800 rounded text-slate-200 focus:outline-none focus:border-[#E30000]"
-            >
-              <option value="ALL">Semua Staf</option>
-              {staffList.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+                <div className="p-2.5 rounded bg-slate-900 border border-slate-800/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-emerald-400">1. Cuti Tahunan</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-300 font-semibold">Gaji Penuh 100%</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Hak cuti tahunan resmi staf (12 hari/tahun). Status tercatat: <strong className="text-slate-200">Cuti</strong>. Tidak memotong gaji pokok maupun tunjangan jabatan.
+                  </p>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900 border border-slate-800/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-amber-400">2. Izin Sakit (Surat Dokter)</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-300 font-semibold">Gaji Penuh 100%</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Sakit dengan melampirkan surat dokter/klinik. Status tercatat: <strong className="text-slate-200">Sakit</strong>. Sesuai UU Ketenagakerjaan & SOP, gaji tidak dipotong.
+                  </p>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900 border border-slate-800/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-sky-400">3. Izin Pribadi & Alpha</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-red-950 border border-red-800 text-red-300 font-semibold">Potong Gaji Prorata</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Izin urusan keluarga / alpha tanpa surat dokter. Status: <strong className="text-slate-200">Izin / Alpha</strong>. Memotong <span className="font-mono text-amber-300">Gaji Pokok/20 + Tunjangan/20</span> per hari tidak masuk.
+                  </p>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900 border border-slate-800/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-purple-400">4. Tugas Luar Studio</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-300 font-semibold">Hadir (On-Site)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Liputan atau meeting di lokasi klien luar studio Batu. Status tercatat: <strong className="text-slate-200">Hadir</strong>, Mode: <strong className="text-slate-200">On-Site</strong>. Berhak klaim reimbursement BBM/konsumsi.
+                  </p>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900 border border-slate-800/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-cyan-400">5. Lembur Shoot</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-cyan-950 border border-cyan-800 text-cyan-300 font-semibold">Hadir + Uang Lembur</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Produksi di luar jam 09:00 - 17:00. Status tercatat: <strong className="text-slate-200">Hadir</strong>, nominal lembur ditambahkan otomatis di modul Slip Gaji.
+                  </p>
+                </div>
+
+                <div className="p-2.5 rounded bg-slate-900 border border-slate-800/80">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-bold text-emerald-300">6. WFO Studio Kota Batu</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 border border-emerald-800 text-emerald-300 font-semibold">Radius &le; 200m</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Check-in terminal GPS obeecreatives di Batu. Terverifikasi koordinat geografis markas produksi.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Table Content */}
